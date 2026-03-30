@@ -6,3 +6,6 @@ data/
 .DS_Store
 venv/
 .venv/
+node_modules/
+server/.env
+client/dist/
