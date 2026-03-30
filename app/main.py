@@ -145,17 +145,26 @@ async def verify_carrier(mc_number: str, api_key: str = Security(verify_api_key)
             url = f"https://verifycarrier.com/api/lookup/dot/MC{mc_number}"
             resp = await client.get(url)
             if resp.status_code == 200:
-                data = resp.json()
-                op_status = data.get("operating_status", "").upper()
-                auth_status = data.get("authority_status", "").upper()
-                is_eligible = "ACTIVE" in op_status and "ACTIVE" in auth_status
+                raw = resp.json()
+                data = raw.get("data", raw)
+                authority = data.get("authority", {})
+                safety = data.get("safety", {})
+                fleet = data.get("fleet", {})
+                common_auth = authority.get("common", "N")
+                out_of_service = safety.get("out_of_service", True)
+                is_eligible = common_auth == "A" and not out_of_service
+                if not is_eligible and common_auth in ("A", "I"):
+                    is_eligible = common_auth != "N" and not out_of_service
                 return {
                     "mc_number": mc_number,
                     "legal_name": data.get("legal_name", "Unknown"),
                     "allowed_to_operate": "Y" if is_eligible else "N",
                     "is_eligible": is_eligible,
-                    "operating_status": data.get("operating_status", "Unknown"),
-                    "authority_status": data.get("authority_status", "Unknown"),
+                    "dot_number": data.get("dot_number", "Unknown"),
+                    "common_authority": common_auth,
+                    "out_of_service": out_of_service,
+                    "total_power_units": fleet.get("power_units", 0),
+                    "total_drivers": fleet.get("drivers", 0),
                     "source": "VerifyCarrier",
                 }
     except Exception:
