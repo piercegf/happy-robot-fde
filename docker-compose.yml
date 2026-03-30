@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - API_KEY=${API_KEY:-acme-logistics-2026}
+      - FMCSA_WEBKEY=${FMCSA_WEBKEY}
+      - DB_PATH=data/carrier_sales.db
+    volumes:
+      - ./data:/app/data
