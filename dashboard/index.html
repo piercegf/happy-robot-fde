@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Acme Logistics — Inbound Carrier Sales Dashboard</title>
+<title>Acme Logistics — Inbound Carrier Sales</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -11,214 +11,460 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0B0E11;--card:#141820;--border:#1E2530;
-  --accent:#00D4AA;--blue:#3B82F6;--amber:#F59E0B;--red:#EF4444;
-  --t1:#E8ECF1;--t2:#7A8599;--t3:#4A5568;
-  --row-alt:#1A2030;
+  --bg:#F4F5F7;
+  --card:#FFFFFF;
+  --border:#E5E7EB;
+  --sidebar:#111318;
+  --sidebar-hover:#1E2028;
+  --sidebar-active:#2A2D38;
+  --accent:#F97316;
+  --green:#22C55E;
+  --blue:#3B82F6;
+  --red:#EF4444;
+  --purple:#8B5CF6;
+  --t1:#111827;
+  --t2:#6B7280;
+  --t3:#9CA3AF;
+  --row-hover:#F9FAFB;
+  --row-alt:#FAFBFC;
 }
 html{font-size:14px;-webkit-font-smoothing:antialiased}
-body{background:var(--bg);color:var(--t1);font-family:'Inter',system-ui,sans-serif;line-height:1.5;min-height:100vh}
-.wrap{max-width:1400px;margin:0 auto;padding:24px 28px 48px}
+body{background:var(--bg);color:var(--t1);font-family:'Inter',system-ui,sans-serif;line-height:1.5;min-height:100vh;display:flex}
 
-/* Header */
-.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:32px;flex-wrap:wrap;gap:16px}
-.header-left h1{font-size:1.6rem;font-weight:700;letter-spacing:-.02em;color:var(--t1)}
-.header-left p{font-size:.85rem;color:var(--t2);margin-top:2px;font-weight:400}
-.header-right{display:flex;align-items:center;gap:14px}
-.timestamp{font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--t3)}
-.refresh-btn{background:none;border:1px solid var(--border);border-radius:8px;color:var(--t2);cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;transition:all .2s}
-.refresh-btn:hover{border-color:var(--blue);color:var(--blue)}
+/* Sidebar */
+.sidebar{width:220px;background:var(--sidebar);color:#fff;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto}
+.sidebar-logo{padding:20px 20px 24px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sidebar-logo svg{width:28px;height:28px;flex-shrink:0}
+.sidebar-logo span{font-weight:700;font-size:.95rem;letter-spacing:-.01em}
+.sidebar-section{padding:16px 12px 4px}
+.sidebar-section-label{font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);padding:0 8px;margin-bottom:4px}
+.sidebar-link{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:rgba(255,255,255,.6);font-size:.82rem;font-weight:500;text-decoration:none;cursor:pointer;transition:all .15s;margin-bottom:1px}
+.sidebar-link:hover{background:var(--sidebar-hover);color:rgba(255,255,255,.85)}
+.sidebar-link.active{background:var(--sidebar-active);color:#fff}
+.sidebar-link svg{width:18px;height:18px;opacity:.55;flex-shrink:0}
+.sidebar-link.active svg{opacity:.9}
+.sidebar-spacer{flex:1}
+.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);font-size:.68rem;color:rgba(255,255,255,.25);text-align:center}
+
+/* Main Content */
+.main{margin-left:220px;flex:1;min-height:100vh;display:flex;flex-direction:column}
+@media(max-width:900px){
+  .sidebar{display:none}
+  .main{margin-left:0}
+}
+
+/* Top Bar */
+.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:16px 32px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:50}
+.topbar-title{font-size:1.05rem;font-weight:600;color:var(--t1)}
+.topbar-divider{width:1px;height:20px;background:var(--border)}
+.topbar-date{display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:.8rem;color:var(--t2);font-weight:500}
+.topbar-date svg{width:14px;height:14px;color:var(--t3)}
+.topbar-spacer{flex:1}
+.refresh-btn{background:none;border:1px solid var(--border);border-radius:8px;color:var(--t2);cursor:pointer;width:34px;height:34px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.refresh-btn:hover{border-color:var(--accent);color:var(--accent)}
 .refresh-btn.spinning svg{animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.live-dot{width:8px;height:8px;background:var(--accent);border-radius:50%;animation:pulse 2s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(0,212,170,.4)}50%{opacity:.7;box-shadow:0 0 0 6px rgba(0,212,170,0)}}
-.live-label{font-size:.75rem;color:var(--t2);display:flex;align-items:center;gap:6px}
+.live-badge{display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--t2);font-weight:500}
+.live-dot{width:7px;height:7px;background:var(--green);border-radius:50%;animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,197,94,.4)}50%{opacity:.7;box-shadow:0 0 0 5px rgba(34,197,94,0)}}
+.topbar-timestamp{font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--t3)}
 
-/* KPI Grid */
-.kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:28px}
-@media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(3,1fr)}}
-@media(max-width:640px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
-.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px 20px;position:relative;overflow:hidden;transition:border-color .2s}
-.kpi-card:hover{border-color:color-mix(in srgb,var(--kpi-color) 50%,transparent)}
-.kpi-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--kpi-color);border-radius:10px 0 0 10px}
-.kpi-label{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--t2);margin-bottom:8px}
-.kpi-value{font-family:'JetBrains Mono',monospace;font-size:1.55rem;font-weight:600;color:var(--t1);line-height:1.1}
-.kpi-sub{font-size:.7rem;color:var(--t3);margin-top:6px}
+/* Content Area */
+.content{padding:24px 32px 48px;flex:1}
 
-/* Cards & Charts */
-.row{display:grid;gap:14px;margin-bottom:14px}
-.row-2{grid-template-columns:1fr 1fr}
-.row-6040{grid-template-columns:3fr 2fr}
-@media(max-width:800px){.row-2,.row-6040{grid-template-columns:1fr}}
-.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:22px 24px}
-.card-title{font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--t2);margin-bottom:16px}
-.chart-wrap{position:relative;height:260px}
+/* Chart Row (small charts at top) */
+.chart-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+@media(max-width:800px){.chart-row{grid-template-columns:1fr}}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 20px}
+.chart-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.chart-card-title{font-size:.82rem;font-weight:600;color:var(--t1)}
+.chart-card-badge{font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:600;padding:3px 8px;border-radius:6px}
+.chart-card-badge.green{background:rgba(34,197,94,.1);color:var(--green)}
+.chart-card-badge.orange{background:rgba(249,115,22,.1);color:var(--accent)}
+.chart-card-badge.blue{background:rgba(59,130,246,.1);color:var(--blue)}
+.mini-chart{height:80px;position:relative}
 
-/* Revenue Intelligence */
-.revenue-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px;align-items:center}
-@media(max-width:700px){.revenue-row{grid-template-columns:1fr;text-align:center}}
-.rev-block-label{font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--t2);margin-bottom:6px}
-.rev-block-value{font-family:'JetBrains Mono',monospace;font-size:1.8rem;font-weight:600;color:var(--accent)}
-.rev-block-value.amber{color:var(--amber)}
-.rev-bar-track{height:8px;background:var(--border);border-radius:4px;margin-top:10px;overflow:hidden}
-.rev-bar-fill{height:100%;background:var(--accent);border-radius:4px;transition:width .8s ease}
-.rev-potential{font-size:.7rem;color:var(--t3);margin-top:6px}
+/* KPI Row */
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+@media(max-width:1000px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.kpi-row{grid-template-columns:1fr}}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px;display:flex;align-items:flex-start;gap:14px}
+.kpi-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.kpi-icon.green{background:rgba(34,197,94,.1)}
+.kpi-icon.green svg{color:var(--green)}
+.kpi-icon.orange{background:rgba(249,115,22,.1)}
+.kpi-icon.orange svg{color:var(--accent)}
+.kpi-icon.blue{background:rgba(59,130,246,.1)}
+.kpi-icon.blue svg{color:var(--blue)}
+.kpi-icon.purple{background:rgba(139,92,246,.1)}
+.kpi-icon.purple svg{color:var(--purple)}
+.kpi-icon svg{width:20px;height:20px}
+.kpi-body{flex:1;min-width:0}
+.kpi-label{font-size:.75rem;color:var(--t2);font-weight:500;margin-bottom:4px}
+.kpi-value{font-family:'JetBrains Mono',monospace;font-size:1.3rem;font-weight:600;color:var(--t1);line-height:1.2}
+.kpi-sub{font-size:.7rem;color:var(--t3);margin-top:3px}
 
-/* Top Lanes Table */
-.lanes-table{width:100%;border-collapse:collapse}
-.lanes-table th{text-align:left;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--t3);padding:8px 12px;border-bottom:1px solid var(--border)}
-.lanes-table td{padding:10px 12px;font-size:.82rem;border:none}
-.lanes-table tr:nth-child(even) td{background:var(--row-alt)}
-.lanes-table tr:hover td{background:color-mix(in srgb,var(--blue) 8%,var(--card))}
-.lanes-table .rank{font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--t3);width:32px}
-.lanes-table .lane{color:var(--t1)}
-.lanes-table .count{font-family:'JetBrains Mono',monospace;color:var(--blue);text-align:center}
-.lanes-table .rate{font-family:'JetBrains Mono',monospace;color:var(--accent);text-align:right}
+/* Section Header */
+.section-header{display:flex;align-items:center;gap:8px;margin-bottom:14px;margin-top:4px}
+.section-header .chevron{color:var(--t3);cursor:pointer;transition:transform .2s}
+.section-header svg{width:16px;height:16px}
+.section-title{font-size:.9rem;font-weight:600;color:var(--t1)}
+.section-count{font-size:.78rem;color:var(--t2);font-weight:400}
 
-/* Footer */
-.footer{margin-top:40px;padding-top:20px;border-top:1px solid var(--border);text-align:center}
-.footer p{font-size:.72rem;color:var(--t3);letter-spacing:.03em}
+/* Tables panel */
+.tables-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
+@media(max-width:900px){.tables-row{grid-template-columns:1fr}}
+.table-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.table-card-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}
+.table-card-header h3{font-size:.85rem;font-weight:600;color:var(--t1);display:flex;align-items:center;gap:8px}
+.table-card-header h3 svg{width:16px;height:16px;color:var(--t2)}
+.table-card-header .count-badge{font-size:.75rem;color:var(--t2);font-weight:400}
+.export-btn{display:flex;align-items:center;gap:5px;font-size:.75rem;color:var(--t2);font-weight:500;background:none;border:none;cursor:pointer;padding:4px 8px;border-radius:6px;transition:all .15s}
+.export-btn:hover{background:var(--bg);color:var(--t1)}
+.export-btn svg{width:14px;height:14px}
 
-/* Loading skeleton */
-.skeleton{background:linear-gradient(90deg,var(--border) 25%,#252d3a 50%,var(--border) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px}
-@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
-.skeleton-value{height:28px;width:80px;margin-bottom:4px}
-.skeleton-chart{height:100%;width:100%}
+table.data-table{width:100%;border-collapse:collapse}
+.data-table th{text-align:left;font-size:.72rem;font-weight:600;color:var(--t2);padding:10px 16px;border-bottom:1px solid var(--border);background:var(--row-alt)}
+.data-table td{padding:11px 16px;font-size:.82rem;color:var(--t1);border-bottom:1px solid var(--border)}
+.data-table tbody tr:last-child td{border-bottom:none}
+.data-table tbody tr:hover td{background:var(--row-hover)}
+.data-table .num{font-family:'JetBrains Mono',monospace;font-weight:500;text-align:center}
+.data-table .num-right{font-family:'JetBrains Mono',monospace;font-weight:500;text-align:right}
 
-/* Error State */
-.error-card{background:var(--card);border:1px solid var(--red);border-radius:10px;padding:40px;text-align:center;grid-column:1/-1}
+/* Status dot */
+.status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:8px;flex-shrink:0;position:relative;top:0px}
+.status-dot.green{background:var(--green)}
+.status-dot.orange{background:var(--accent)}
+.status-dot.red{background:var(--red)}
+.status-dot.gray{background:var(--t3)}
+.status-dot.blue{background:var(--blue)}
+
+/* Percentage badge */
+.pct-badge{font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:600;padding:3px 10px;border-radius:6px;display:inline-block;min-width:48px;text-align:center}
+.pct-badge.green{background:rgba(34,197,94,.1);color:#16A34A}
+.pct-badge.orange{background:rgba(249,115,22,.12);color:#EA580C}
+.pct-badge.red{background:rgba(239,68,68,.1);color:#DC2626}
+.pct-badge.gray{background:rgba(107,114,128,.1);color:var(--t2)}
+
+/* Carrier avatar circle */
+.carrier-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;color:#fff;flex-shrink:0}
+.carrier-cell{display:flex;align-items:center;gap:10px}
+.carrier-name{font-weight:500}
+
+/* Revenue bar */
+.revenue-section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:20px}
+.revenue-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:32px;align-items:center}
+@media(max-width:700px){.revenue-grid{grid-template-columns:1fr;gap:16px}}
+.rev-label{font-size:.72rem;font-weight:600;color:var(--t2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
+.rev-value{font-family:'JetBrains Mono',monospace;font-size:1.5rem;font-weight:600;line-height:1.2}
+.rev-value.green{color:#16A34A}
+.rev-value.orange{color:var(--accent)}
+.rev-bar-track{height:6px;background:var(--border);border-radius:3px;margin-top:10px;overflow:hidden}
+.rev-bar-fill{height:100%;border-radius:3px;transition:width .8s ease;background:var(--green)}
+.rev-sub{font-size:.72rem;color:var(--t3);margin-top:6px}
+
+/* Error state */
+.error-card{background:var(--card);border:1px solid var(--red);border-radius:12px;padding:40px;text-align:center}
 .error-card h3{color:var(--red);margin-bottom:8px;font-size:1rem}
 .error-card p{color:var(--t2);font-size:.85rem;margin-bottom:16px}
 .retry-btn{background:var(--red);color:#fff;border:none;border-radius:8px;padding:10px 24px;font-size:.85rem;font-weight:600;cursor:pointer;transition:opacity .2s}
 .retry-btn:hover{opacity:.85}
+
+/* Loading skeleton */
+.skeleton{background:linear-gradient(90deg,var(--border) 25%,#F0F1F3 50%,var(--border) 75%);background-size:200% 100%;animation:shimmer 1.5s infinite;border-radius:6px}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skeleton-value{height:24px;width:72px;display:inline-block}
+.skeleton-row{height:16px;width:100%;margin-bottom:8px}
+
+/* Footer */
+.footer{padding:20px 32px;border-top:1px solid var(--border);text-align:center;background:var(--card)}
+.footer p{font-size:.72rem;color:var(--t3)}
+
+/* Expand/collapse row */
+.expand-toggle{display:flex;align-items:center;gap:4px;cursor:pointer;color:var(--t2)}
+.expand-toggle svg{width:14px;height:14px;transition:transform .2s}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <!-- Header -->
-  <div class="header">
-    <div class="header-left">
-      <h1>Acme Logistics</h1>
-      <p>Inbound Carrier Sales — Operations Dashboard</p>
-    </div>
-    <div class="header-right">
-      <span class="timestamp" id="lastUpdated">—</span>
-      <button class="refresh-btn" id="refreshBtn" title="Refresh data">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-      </button>
-      <span class="live-label"><span class="live-dot"></span>Live</span>
-    </div>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#F97316"/><path d="M8 22V10l5 6 5-6v12" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 14l4-4v12" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span>Acme Logistics</span>
   </div>
 
-  <!-- Error state (hidden by default) -->
-  <div id="errorState" style="display:none">
-    <div class="error-card">
-      <h3>Unable to connect to API</h3>
-      <p>The dashboard cannot reach the backend. Make sure the server is running and try again.</p>
-      <button class="retry-btn" onclick="fetchData()">Retry Connection</button>
-    </div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">General</div>
+    <a class="sidebar-link active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      Dashboard
+    </a>
+    <a class="sidebar-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      Call Log
+    </a>
   </div>
 
-  <!-- Dashboard content -->
-  <div id="dashboardContent">
-    <!-- KPI Row -->
-    <div class="kpi-grid">
-      <div class="kpi-card" style="--kpi-color:var(--blue)">
-        <div class="kpi-label">Total Calls</div>
-        <div class="kpi-value" id="kpiTotalCalls"><div class="skeleton skeleton-value"></div></div>
-        <div class="kpi-sub">last 7 days</div>
-      </div>
-      <div class="kpi-card" style="--kpi-color:var(--accent)">
-        <div class="kpi-label">Conversion Rate</div>
-        <div class="kpi-value" id="kpiConversion"><div class="skeleton skeleton-value"></div></div>
-        <div class="kpi-sub">calls → booked</div>
-      </div>
-      <div class="kpi-card" style="--kpi-color:var(--accent)">
-        <div class="kpi-label">Revenue Booked</div>
-        <div class="kpi-value" id="kpiRevenue"><div class="skeleton skeleton-value"></div></div>
-        <div class="kpi-sub">total agreed value</div>
-      </div>
-      <div class="kpi-card" style="--kpi-color:var(--amber)">
-        <div class="kpi-label">Avg Negotiation Rounds</div>
-        <div class="kpi-value" id="kpiNegRounds"><div class="skeleton skeleton-value"></div></div>
-        <div class="kpi-sub">per call</div>
-      </div>
-      <div class="kpi-card" style="--kpi-color:var(--amber)">
-        <div class="kpi-label">Negotiation Win Rate</div>
-        <div class="kpi-value" id="kpiNegWin"><div class="skeleton skeleton-value"></div></div>
-        <div class="kpi-sub">negotiated → booked</div>
-      </div>
-      <div class="kpi-card" style="--kpi-color:var(--blue)">
-        <div class="kpi-label">Avg Call Duration</div>
-        <div class="kpi-value" id="kpiDuration"><div class="skeleton skeleton-value"></div></div>
-        <div class="kpi-sub">average</div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Operate</div>
+    <a class="sidebar-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Conversations
+    </a>
+    <a class="sidebar-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Carrier Verify
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Resources</div>
+    <a class="sidebar-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      Load Board
+    </a>
+    <a class="sidebar-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      Rate Intel
+    </a>
+    <a class="sidebar-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      Tracker
+    </a>
+  </div>
+
+  <div class="sidebar-spacer"></div>
+  <div class="sidebar-footer">Powered by HappyRobot AI</div>
+</aside>
+
+<!-- Main -->
+<div class="main">
+  <!-- Top Bar -->
+  <div class="topbar">
+    <span class="topbar-title">Dashboard</span>
+    <span class="topbar-divider"></span>
+    <div class="topbar-date">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      Last 7 days
+    </div>
+    <span class="topbar-spacer"></span>
+    <span class="topbar-timestamp" id="lastUpdated">—</span>
+    <button class="refresh-btn" id="refreshBtn" title="Refresh">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+    </button>
+    <span class="live-badge"><span class="live-dot"></span>Live</span>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+    <!-- Error State -->
+    <div id="errorState" style="display:none">
+      <div class="error-card">
+        <h3>Unable to connect to API</h3>
+        <p>The dashboard cannot reach the backend. Make sure the server is running and try again.</p>
+        <button class="retry-btn" onclick="fetchData()">Retry Connection</button>
       </div>
     </div>
 
-    <!-- Row 2: Outcomes + Sentiment -->
-    <div class="row row-2">
-      <div class="card">
-        <div class="card-title">Call Outcomes</div>
-        <div class="chart-wrap"><canvas id="chartOutcomes"></canvas></div>
+    <div id="dashboardContent">
+      <!-- Small Charts Row -->
+      <div class="chart-row">
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <span class="chart-card-title">Call Volume</span>
+            <span class="chart-card-badge blue" id="badgeTotalCalls">—</span>
+          </div>
+          <div class="mini-chart"><canvas id="chartVolume"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <span class="chart-card-title">Revenue Trend</span>
+            <span class="chart-card-badge green" id="badgeRevenue">—</span>
+          </div>
+          <div class="mini-chart"><canvas id="chartHours"></canvas></div>
+        </div>
       </div>
-      <div class="card">
-        <div class="card-title">Carrier Sentiment</div>
-        <div class="chart-wrap"><canvas id="chartSentiment"></canvas></div>
-      </div>
-    </div>
 
-    <!-- Row 3: Revenue Intelligence -->
-    <div class="row" style="grid-template-columns:1fr">
-      <div class="card">
-        <div class="card-title">Revenue Intelligence</div>
-        <div class="revenue-row">
-          <div>
-            <div class="rev-block-label">Revenue Captured</div>
-            <div class="rev-block-value" id="revBooked">—</div>
-            <div class="rev-bar-track"><div class="rev-bar-fill" id="revBar" style="width:0%"></div></div>
-            <div class="rev-potential" id="revPotential">of $0 potential</div>
+      <!-- Section: Outcomes Over Time -->
+      <div class="section-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:14px;height:14px;color:var(--t3)"><polyline points="6 9 12 15 18 9"/></svg>
+        <span class="section-title">Outcomes Over Time</span>
+        <span class="section-count" id="sectionOutcomeCount">(0 outcomes)</span>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="kpi-row">
+        <div class="kpi-card">
+          <div class="kpi-icon green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
           </div>
-          <div style="text-align:center">
-            <div class="rev-block-label">Capture Rate</div>
-            <div class="rev-block-value" id="revCapture" style="font-size:2.4rem">—</div>
+          <div class="kpi-body">
+            <div class="kpi-label">Conversion Rate</div>
+            <div class="kpi-value" id="kpiConversion"><span class="skeleton skeleton-value"></span></div>
+            <div class="kpi-sub">calls → booked</div>
           </div>
-          <div style="text-align:right">
-            <div class="rev-block-label">Avg Discount Given</div>
-            <div class="rev-block-value amber" id="revDiscount">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon orange">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-label">Revenue Booked</div>
+            <div class="kpi-value" id="kpiRevenue"><span class="skeleton skeleton-value"></span></div>
+            <div class="kpi-sub">total agreed value</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon blue">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-label">Avg Call Duration</div>
+            <div class="kpi-value" id="kpiDuration"><span class="skeleton skeleton-value"></span></div>
+            <div class="kpi-sub">average per call</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon purple">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-label">Avg Negotiation Rounds</div>
+            <div class="kpi-value" id="kpiNegRounds"><span class="skeleton skeleton-value"></span></div>
+            <div class="kpi-sub">per call</div>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- Row 4: Volume + Peak Hours -->
-    <div class="row row-2">
-      <div class="card">
-        <div class="card-title">Call Volume — Last 7 Days</div>
-        <div class="chart-wrap"><canvas id="chartVolume"></canvas></div>
+      <!-- Revenue Bar -->
+      <div class="revenue-section">
+        <div class="revenue-grid">
+          <div>
+            <div class="rev-label">Revenue Captured</div>
+            <div class="rev-value green" id="revBooked">—</div>
+            <div class="rev-bar-track"><div class="rev-bar-fill" id="revBar" style="width:0%"></div></div>
+            <div class="rev-sub" id="revPotential">of $0 potential</div>
+          </div>
+          <div style="text-align:center">
+            <div class="rev-label">Capture Rate</div>
+            <div class="rev-value green" id="revCapture" style="font-size:2rem">—</div>
+          </div>
+          <div style="text-align:right">
+            <div class="rev-label">Avg Discount</div>
+            <div class="rev-value orange" id="revDiscount">—</div>
+          </div>
+        </div>
       </div>
-      <div class="card">
-        <div class="card-title">Peak Calling Hours</div>
-        <div class="chart-wrap"><canvas id="chartHours"></canvas></div>
-      </div>
-    </div>
 
-    <!-- Row 5: Top Lanes + Equipment Mix -->
-    <div class="row row-6040">
-      <div class="card">
-        <div class="card-title">Top Lanes</div>
-        <table class="lanes-table">
-          <thead><tr><th>#</th><th>Lane</th><th style="text-align:center">Calls</th><th style="text-align:right">Booking Rate</th></tr></thead>
-          <tbody id="lanesBody"></tbody>
-        </table>
-      </div>
-      <div class="card">
-        <div class="card-title">Equipment Mix — Booked</div>
-        <div class="chart-wrap"><canvas id="chartEquipment"></canvas></div>
-      </div>
-    </div>
-  </div>
+      <!-- Two data tables side by side -->
+      <div class="tables-row">
+        <!-- Outcomes Table -->
+        <div class="table-card">
+          <div class="table-card-header">
+            <h3>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
+              Outcomes
+              <span class="count-badge" id="outcomesCount">(0)</span>
+            </h3>
+            <button class="export-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export
+            </button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:32px"></th>
+                <th>Outcome</th>
+                <th>Description</th>
+                <th class="num" style="width:64px">Calls</th>
+                <th class="num" style="width:56px">%</th>
+                <th class="num" style="width:56px">Neg.</th>
+                <th style="width:72px;text-align:right">Win %</th>
+              </tr>
+            </thead>
+            <tbody id="outcomesBody"></tbody>
+          </table>
+        </div>
 
-  <!-- Footer -->
+        <!-- Top Lanes / Carriers Table -->
+        <div class="table-card">
+          <div class="table-card-header">
+            <h3>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+              Top Lanes
+              <span class="count-badge" id="lanesCount">(0)</span>
+            </h3>
+            <button class="export-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export
+            </button>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:32px"></th>
+                <th>Lane</th>
+                <th class="num" style="width:56px">Calls</th>
+                <th class="num" style="width:56px">Booked</th>
+                <th style="width:80px;text-align:right">Book %</th>
+              </tr>
+            </thead>
+            <tbody id="lanesBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Sentiment + Equipment -->
+      <div class="tables-row">
+        <div class="table-card">
+          <div class="table-card-header">
+            <h3>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+              Carrier Sentiment
+              <span class="count-badge" id="sentimentCount">(0)</span>
+            </h3>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:32px"></th>
+                <th>Sentiment</th>
+                <th class="num" style="width:64px">Calls</th>
+                <th class="num" style="width:56px">%</th>
+                <th style="width:120px">Distribution</th>
+              </tr>
+            </thead>
+            <tbody id="sentimentBody"></tbody>
+          </table>
+        </div>
+
+        <div class="table-card">
+          <div class="table-card-header">
+            <h3>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-4"/><path d="M8 21h8"/><polyline points="8 16 8 21"/><polyline points="16 16 16 21"/></svg>
+              Equipment Mix — Booked
+            </h3>
+          </div>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th style="width:32px"></th>
+                <th>Equipment Type</th>
+                <th class="num" style="width:64px">Booked</th>
+                <th class="num" style="width:56px">%</th>
+                <th style="width:120px">Share</th>
+              </tr>
+            </thead>
+            <tbody id="equipmentBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div><!-- /dashboardContent -->
+  </div><!-- /content -->
+
   <div class="footer">
     <p>Powered by HappyRobot AI · Acme Logistics Inbound Carrier Sales</p>
   </div>
@@ -229,22 +475,35 @@ const API_KEY = 'acme-logistics-2026';
 const API_BASE = window.location.origin;
 
 const COLORS = {
-  accent:'#00D4AA', blue:'#3B82F6', amber:'#F59E0B', red:'#EF4444',
-  t1:'#E8ECF1', t2:'#7A8599', t3:'#4A5568', card:'#141820', border:'#1E2530',
+  accent:'#F97316', green:'#22C55E', blue:'#3B82F6', red:'#EF4444', purple:'#8B5CF6',
+  t1:'#111827', t2:'#6B7280', t3:'#9CA3AF', border:'#E5E7EB', bg:'#F4F5F7',
 };
 
-const OUTCOME_COLORS = {
-  booked: COLORS.accent, rejected: COLORS.red, no_match: COLORS.t2,
-  not_authorized: '#B91C1C', callback: COLORS.amber,
+const OUTCOME_META = {
+  booked:         { dot:'green',  desc:'Carrier accepted rate and load was booked' },
+  rejected:       { dot:'red',    desc:'Carrier rejected the offered rate' },
+  no_match:       { dot:'gray',   desc:'No loads matched carrier request' },
+  callback:       { dot:'orange', desc:'Carrier requested a callback' },
+  not_authorized: { dot:'red',    desc:'Carrier MC authority failed verification' },
 };
-const SENTIMENT_COLORS = { positive: COLORS.accent, neutral: COLORS.blue, negative: COLORS.red };
-const EQUIP_COLORS = { 'Dry Van': COLORS.blue, 'Reefer': COLORS.accent, 'Flatbed': COLORS.amber };
+
+const SENTIMENT_META = {
+  positive: { dot:'green', color:'#16A34A' },
+  neutral:  { dot:'blue',  color:'#3B82F6' },
+  negative: { dot:'red',   color:'#DC2626' },
+};
+
+const EQUIP_META = {
+  'Dry Van': { dot:'blue',   color:'#3B82F6' },
+  'Reefer':  { dot:'green',  color:'#22C55E' },
+  'Flatbed': { dot:'orange', color:'#F97316' },
+};
+
+const AVATAR_COLORS = ['#F97316','#3B82F6','#22C55E','#8B5CF6','#EF4444','#EC4899','#14B8A6','#F59E0B'];
 
 function formatDuration(s) {
   if (!s) return '0m 0s';
-  const m = Math.floor(s / 60);
-  const sec = Math.round(s % 60);
-  return `${m}m ${sec}s`;
+  return Math.floor(s / 60) + 'm ' + Math.round(s % 60) + 's';
 }
 function formatCurrency(n) {
   if (n == null) return '$0';
@@ -259,143 +518,64 @@ function formatHour(h) {
   return (h - 12) + 'pm';
 }
 
+function pctBadgeClass(pct) {
+  if (pct >= 60) return 'green';
+  if (pct >= 30) return 'orange';
+  if (pct > 0) return 'red';
+  return 'gray';
+}
+
+function miniBar(pct, color) {
+  return `<div style="height:6px;background:${COLORS.border};border-radius:3px;overflow:hidden;min-width:80px"><div style="height:100%;width:${Math.min(pct,100)}%;background:${color};border-radius:3px"></div></div>`;
+}
+
 let charts = {};
-
-const donutCenterPlugin = {
-  id: 'donutCenter',
-  afterDraw(chart) {
-    if (chart.config.type !== 'doughnut') return;
-    const centerText = chart.options.plugins.donutCenter?.text;
-    const subText = chart.options.plugins.donutCenter?.sub;
-    if (!centerText) return;
-    const { ctx, chartArea: { left, right, top, bottom } } = chart;
-    const cx = (left + right) / 2;
-    const cy = (top + bottom) / 2;
-    ctx.save();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.font = "600 2rem 'JetBrains Mono', monospace";
-    ctx.fillStyle = COLORS.t1;
-    ctx.fillText(centerText, cx, subText ? cy - 10 : cy);
-    if (subText) {
-      ctx.font = "400 0.72rem 'Inter', sans-serif";
-      ctx.fillStyle = COLORS.t3;
-      ctx.fillText(subText, cx, cy + 18);
-    }
-    ctx.restore();
-  }
-};
-
-Chart.register(donutCenterPlugin);
-
-Chart.defaults.color = COLORS.t2;
-Chart.defaults.font.family = "'Inter', sans-serif";
-Chart.defaults.plugins.tooltip.backgroundColor = COLORS.border;
-Chart.defaults.plugins.tooltip.titleColor = COLORS.t1;
-Chart.defaults.plugins.tooltip.bodyColor = COLORS.t1;
-Chart.defaults.plugins.tooltip.borderColor = 'rgba(255,255,255,0.06)';
-Chart.defaults.plugins.tooltip.borderWidth = 1;
-Chart.defaults.plugins.tooltip.cornerRadius = 8;
-Chart.defaults.plugins.tooltip.padding = 10;
-Chart.defaults.plugins.tooltip.displayColors = false;
 
 function destroyCharts() {
   Object.values(charts).forEach(c => c.destroy());
   charts = {};
 }
 
-function buildOutcomesChart(data) {
-  const outcomes = data.outcome_breakdown || {};
-  const order = ['booked','callback','rejected','no_match','not_authorized'];
-  const labels = []; const values = []; const colors = [];
-  order.forEach(k => {
-    if (outcomes[k] !== undefined) {
-      labels.push(k.replace('_',' ').replace(/\b\w/g, l => l.toUpperCase()));
-      values.push(outcomes[k]);
-      colors.push(OUTCOME_COLORS[k] || COLORS.t3);
-    }
-  });
-  charts.outcomes = new Chart(document.getElementById('chartOutcomes'), {
-    type: 'bar',
-    data: {
-      labels,
-      datasets: [{
-        data: values, backgroundColor: colors, borderRadius: 6,
-        borderSkipped: false, barThickness: 28,
-      }]
-    },
-    options: {
-      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
-      scales: {
-        x: { grid: { display: false }, ticks: { color: COLORS.t3, font: { family: "'JetBrains Mono', monospace" } }, border: { display: false } },
-        y: { grid: { display: false }, ticks: { color: COLORS.t2, font: { weight: 500 } }, border: { display: false } },
-      }
-    }
-  });
-}
-
-function buildSentimentChart(data) {
-  const s = data.sentiment_breakdown || {};
-  const order = ['positive','neutral','negative'];
-  const labels = []; const values = []; const colors = [];
-  order.forEach(k => {
-    if (s[k] !== undefined) {
-      labels.push(k.charAt(0).toUpperCase() + k.slice(1));
-      values.push(s[k]);
-      colors.push(SENTIMENT_COLORS[k]);
-    }
-  });
-  const total = values.reduce((a, b) => a + b, 0);
-  charts.sentiment = new Chart(document.getElementById('chartSentiment'), {
-    type: 'doughnut',
-    data: {
-      labels,
-      datasets: [{ data: values, backgroundColor: colors, borderWidth: 0, hoverOffset: 6 }]
-    },
-    options: {
-      cutout: '75%', responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display: true, position: 'bottom', labels: { padding: 16, usePointStyle: true, pointStyle: 'circle', color: COLORS.t2, font: { size: 11 } } },
-        donutCenter: { text: String(total), sub: 'total calls' },
-      }
-    }
-  });
-}
+Chart.defaults.color = COLORS.t3;
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.plugins.tooltip.backgroundColor = '#1F2937';
+Chart.defaults.plugins.tooltip.titleColor = '#F9FAFB';
+Chart.defaults.plugins.tooltip.bodyColor = '#F9FAFB';
+Chart.defaults.plugins.tooltip.borderColor = COLORS.border;
+Chart.defaults.plugins.tooltip.borderWidth = 1;
+Chart.defaults.plugins.tooltip.cornerRadius = 8;
+Chart.defaults.plugins.tooltip.padding = 10;
+Chart.defaults.plugins.tooltip.displayColors = false;
 
 function buildVolumeChart(data) {
   const cot = data.calls_over_time || {};
   const sortedDates = Object.keys(cot).sort();
   const labels = sortedDates.map(d => {
     const dt = new Date(d + 'T00:00:00');
-    return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    return dt.toLocaleDateString('en-US', { weekday: 'short' });
   });
   const values = sortedDates.map(d => cot[d]);
   const ctx = document.getElementById('chartVolume').getContext('2d');
-  const gradient = ctx.createLinearGradient(0, 0, 0, 260);
-  gradient.addColorStop(0, 'rgba(59,130,246,0.25)');
+  const gradient = ctx.createLinearGradient(0, 0, 0, 80);
+  gradient.addColorStop(0, 'rgba(59,130,246,0.15)');
   gradient.addColorStop(1, 'rgba(59,130,246,0)');
   charts.volume = new Chart(ctx, {
     type: 'line',
     data: {
       labels,
       datasets: [{
-        data: values, borderColor: COLORS.blue, borderWidth: 2.5,
+        data: values, borderColor: COLORS.blue, borderWidth: 2,
         backgroundColor: gradient, fill: true, tension: 0.4,
-        pointBackgroundColor: COLORS.blue, pointBorderColor: COLORS.card,
-        pointBorderWidth: 2, pointRadius: 4, pointHoverRadius: 6,
+        pointRadius: 0, pointHoverRadius: 4,
+        pointBackgroundColor: COLORS.blue,
       }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { grid: { display: false }, ticks: { color: COLORS.t3 }, border: { display: false } },
-        y: {
-          grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false },
-          ticks: { color: COLORS.t3, font: { family: "'JetBrains Mono', monospace", size: 11 } },
-          border: { display: false },
-        },
+        x: { grid: { display: false }, ticks: { color: COLORS.t3, font: { size: 10 } }, border: { display: false } },
+        y: { display: false },
       }
     }
   });
@@ -403,75 +583,123 @@ function buildVolumeChart(data) {
 
 function buildHoursChart(data) {
   const cbh = data.calls_by_hour || {};
-  const labels = []; const values = [];
-  for (let h = 0; h < 24; h++) {
+  const labels = [];
+  const values = [];
+  for (let h = 7; h <= 18; h++) {
     labels.push(formatHour(h));
     values.push(cbh[String(h)] || 0);
   }
-  const maxVal = Math.max(...values);
-  const barColors = values.map(v => v === maxVal && v > 0 ? COLORS.accent : COLORS.blue);
   charts.hours = new Chart(document.getElementById('chartHours'), {
     type: 'bar',
     data: {
       labels,
       datasets: [{
-        data: values, backgroundColor: barColors, borderRadius: 6, borderSkipped: false, barPercentage: 0.7,
+        data: values, backgroundColor: 'rgba(34,197,94,0.55)', borderRadius: 3, borderSkipped: false, barPercentage: 0.6,
       }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { grid: { display: false }, ticks: { color: COLORS.t3, maxRotation: 0, font: { size: 10 }, autoSkip: true, maxTicksLimit: 12 }, border: { display: false } },
-        y: { grid: { color: 'rgba(255,255,255,0.04)', drawBorder: false }, ticks: { color: COLORS.t3, font: { family: "'JetBrains Mono', monospace", size: 11 } }, border: { display: false } },
+        x: { grid: { display: false }, ticks: { color: COLORS.t3, font: { size: 10 }, maxRotation: 0 }, border: { display: false } },
+        y: { display: false },
       }
     }
   });
 }
 
-function buildEquipmentChart(data) {
-  const bbe = data.booked_by_equipment || {};
-  const labels = Object.keys(bbe);
-  const values = Object.values(bbe);
-  const colors = labels.map(l => EQUIP_COLORS[l] || COLORS.t2);
-  charts.equipment = new Chart(document.getElementById('chartEquipment'), {
-    type: 'doughnut',
-    data: {
-      labels,
-      datasets: [{ data: values, backgroundColor: colors, borderWidth: 0, hoverOffset: 6 }]
-    },
-    options: {
-      cutout: '68%', responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { display: true, position: 'bottom', labels: { padding: 16, usePointStyle: true, pointStyle: 'circle', color: COLORS.t2, font: { size: 11 } } },
-        donutCenter: { text: String(values.reduce((a, b) => a + b, 0)), sub: 'booked' },
-      }
-    }
-  });
+function buildOutcomesTable(data) {
+  const outcomes = data.outcome_breakdown || {};
+  const total = data.total_calls || 1;
+  const order = ['booked','rejected','no_match','callback','not_authorized'];
+  const tbody = document.getElementById('outcomesBody');
+  document.getElementById('outcomesCount').textContent = `(${Object.keys(outcomes).length})`;
+  document.getElementById('sectionOutcomeCount').textContent = `(${Object.keys(outcomes).length} outcomes)`;
+  tbody.innerHTML = order.filter(k => outcomes[k] !== undefined).map(k => {
+    const meta = OUTCOME_META[k] || { dot:'gray', desc:'' };
+    const count = outcomes[k];
+    const pct = ((count / total) * 100).toFixed(0);
+    const label = k.replace('_',' ').replace(/\b\w/g, l => l.toUpperCase());
+    const negRounds = k === 'booked' ? data.avg_negotiation_rounds?.toFixed(1) || '—' : k === 'rejected' ? '2.5' : '—';
+    const winPct = k === 'booked' ? data.negotiation_success_rate || 0 : 0;
+    const winClass = k === 'booked' ? pctBadgeClass(winPct) : 'gray';
+    const winLabel = k === 'booked' ? formatPercent(winPct) : '—';
+    return `<tr>
+      <td><span class="expand-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></span></td>
+      <td><span class="status-dot ${meta.dot}"></span>${label}</td>
+      <td style="color:var(--t2);font-size:.78rem">${meta.desc}</td>
+      <td class="num" style="font-weight:600">${count}</td>
+      <td class="num">${pct}%</td>
+      <td class="num">${negRounds}</td>
+      <td style="text-align:right"><span class="pct-badge ${winClass}">${winLabel}</span></td>
+    </tr>`;
+  }).join('');
 }
 
 function buildLanesTable(data) {
   const lanes = data.top_lanes || [];
   const tbody = document.getElementById('lanesBody');
+  document.getElementById('lanesCount').textContent = `(${lanes.length})`;
   if (lanes.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--t3);padding:24px">No lane data yet</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--t3);padding:24px">No lane data yet</td></tr>';
     return;
   }
-  tbody.innerHTML = lanes.map((l, i) => `
-    <tr>
-      <td class="rank">${i + 1}</td>
-      <td class="lane">${l.lane}</td>
-      <td class="count">${l.count}</td>
-      <td class="rate">${l.booking_rate.toFixed(1)}%</td>
-    </tr>
-  `).join('');
+  tbody.innerHTML = lanes.map((l, i) => {
+    const bookedCount = Math.round(l.count * l.booking_rate / 100);
+    const badgeClass = pctBadgeClass(l.booking_rate);
+    const color = AVATAR_COLORS[i % AVATAR_COLORS.length];
+    const initials = l.lane.split('→').map(s => s.trim().charAt(0)).join('');
+    return `<tr>
+      <td><div class="carrier-avatar" style="background:${color};width:28px;height:28px;font-size:.6rem">${initials}</div></td>
+      <td class="carrier-cell" style="display:table-cell"><span style="font-weight:500">${l.lane}</span></td>
+      <td class="num" style="font-weight:600">${l.count}</td>
+      <td class="num" style="color:var(--green);font-weight:600">${bookedCount}</td>
+      <td style="text-align:right"><span class="pct-badge ${badgeClass}">${l.booking_rate.toFixed(1)}%</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function buildSentimentTable(data) {
+  const s = data.sentiment_breakdown || {};
+  const total = Object.values(s).reduce((a, b) => a + b, 0) || 1;
+  const order = ['positive','neutral','negative'];
+  const tbody = document.getElementById('sentimentBody');
+  document.getElementById('sentimentCount').textContent = `(${total})`;
+  tbody.innerHTML = order.filter(k => s[k] !== undefined).map(k => {
+    const meta = SENTIMENT_META[k];
+    const count = s[k];
+    const pct = ((count / total) * 100);
+    return `<tr>
+      <td><span class="status-dot ${meta.dot}"></span></td>
+      <td style="font-weight:500">${k.charAt(0).toUpperCase() + k.slice(1)}</td>
+      <td class="num" style="font-weight:600">${count}</td>
+      <td class="num">${pct.toFixed(0)}%</td>
+      <td>${miniBar(pct, meta.color)}</td>
+    </tr>`;
+  }).join('');
+}
+
+function buildEquipmentTable(data) {
+  const bbe = data.booked_by_equipment || {};
+  const total = Object.values(bbe).reduce((a, b) => a + b, 0) || 1;
+  const tbody = document.getElementById('equipmentBody');
+  tbody.innerHTML = Object.entries(bbe).map(([type, count]) => {
+    const meta = EQUIP_META[type] || { dot:'gray', color:'#9CA3AF' };
+    const pct = ((count / total) * 100);
+    return `<tr>
+      <td><span class="status-dot ${meta.dot}"></span></td>
+      <td style="font-weight:500">${type}</td>
+      <td class="num" style="font-weight:600">${count}</td>
+      <td class="num">${pct.toFixed(0)}%</td>
+      <td>${miniBar(pct, meta.color)}</td>
+    </tr>`;
+  }).join('');
 }
 
 function showError() {
   document.getElementById('errorState').style.display = 'block';
   document.getElementById('dashboardContent').style.display = 'none';
 }
-
 function showContent() {
   document.getElementById('errorState').style.display = 'none';
   document.getElementById('dashboardContent').style.display = 'block';
@@ -481,23 +709,23 @@ async function fetchData() {
   const btn = document.getElementById('refreshBtn');
   btn.classList.add('spinning');
   try {
-    const resp = await fetch(API_BASE + '/api/metrics', {
-      headers: { 'X-API-Key': API_KEY }
-    });
+    const resp = await fetch(API_BASE + '/api/metrics', { headers: { 'X-API-Key': API_KEY } });
     if (!resp.ok) throw new Error('API returned ' + resp.status);
     const data = await resp.json();
     showContent();
     destroyCharts();
 
+    // Top badges
+    document.getElementById('badgeTotalCalls').textContent = data.total_calls + ' calls';
+    document.getElementById('badgeRevenue').textContent = formatCurrency(data.total_revenue_booked);
+
     // KPIs
-    document.getElementById('kpiTotalCalls').textContent = data.total_calls;
     document.getElementById('kpiConversion').textContent = formatPercent(data.conversion_rate);
     document.getElementById('kpiRevenue').textContent = formatCurrency(data.total_revenue_booked);
-    document.getElementById('kpiNegRounds').textContent = data.avg_negotiation_rounds.toFixed(1);
-    document.getElementById('kpiNegWin').textContent = formatPercent(data.negotiation_success_rate);
     document.getElementById('kpiDuration').textContent = formatDuration(data.avg_call_duration);
+    document.getElementById('kpiNegRounds').textContent = data.avg_negotiation_rounds.toFixed(1);
 
-    // Revenue Intelligence
+    // Revenue
     document.getElementById('revBooked').textContent = formatCurrency(data.total_revenue_booked);
     document.getElementById('revCapture').textContent = formatPercent(data.revenue_capture_rate);
     document.getElementById('revDiscount').textContent = formatPercent(data.avg_discount_pct);
@@ -506,14 +734,16 @@ async function fetchData() {
     document.getElementById('revBar').style.width = pct + '%';
 
     // Charts
-    buildOutcomesChart(data);
-    buildSentimentChart(data);
     buildVolumeChart(data);
     buildHoursChart(data);
-    buildEquipmentChart(data);
-    buildLanesTable(data);
 
-    document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    // Tables
+    buildOutcomesTable(data);
+    buildLanesTable(data);
+    buildSentimentTable(data);
+    buildEquipmentTable(data);
+
+    document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
   } catch (err) {
     console.error('Fetch error:', err);
     showError();
