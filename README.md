@@ -43,7 +43,7 @@ AI-powered inbound carrier sales system for Acme Logistics, built on HappyRobot'
 
 ```bash
 # Clone the repository
-git clone <REPO_URL>
+git clone https://github.com/piercegf/happy-robot-fde.git
 cd happyrobot-fde
 
 # Create virtual environment
@@ -267,6 +267,7 @@ Auto-refreshes every 30 seconds. Click the refresh button for manual updates.
 
 ## Links
 
-- **Live Dashboard:** [DASHBOARD_URL]
+- **Live Dashboard:** [https://happy-robot-fde-production-f148.up.railway.app/dashboard](https://happy-robot-fde-production-f148.up.railway.app/dashboard)
+- **GitHub Repo:** [https://github.com/piercegf/happy-robot-fde](https://github.com/piercegf/happy-robot-fde)
 - **HappyRobot Workflow:** [WORKFLOW_URL]
 - **Demo Video:** [VIDEO_URL]
