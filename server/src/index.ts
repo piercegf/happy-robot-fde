@@ -26,6 +26,7 @@ app.post("/api/voice/token", async (_req, res) => {
   try {
     const result = await client.voice.createToken({
       workflow_id: WORKFLOW_ID,
+      environment: "development",
     });
     res.json(result);
   } catch (err) {

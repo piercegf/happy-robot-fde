@@ -269,5 +269,5 @@ Auto-refreshes every 30 seconds. Click the refresh button for manual updates.
 
 - **Live Dashboard:** [https://happy-robot-fde-production-f148.up.railway.app/dashboard](https://happy-robot-fde-production-f148.up.railway.app/dashboard)
 - **GitHub Repo:** [https://github.com/piercegf/happy-robot-fde](https://github.com/piercegf/happy-robot-fde)
-- **HappyRobot Workflow:** [WORKFLOW_URL]
+- **HappyRobot Workflow:** [https://platform.happyrobot.ai/fdealejandroperez/workflows/gchtmr5tol1e](https://platform.happyrobot.ai/fdealejandroperez/workflows/gchtmr5tol1e)
 - **Demo Video:** [VIDEO_URL]
