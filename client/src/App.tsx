@@ -61,8 +61,18 @@ export function App() {
       });
 
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || `Server returned ${res.status}`);
+        const err = (await res.json().catch(() => ({}))) as {
+          error?: string;
+          detail?: string;
+          hint?: string;
+          status?: number;
+        };
+        const parts = [
+          err.detail || err.error,
+          err.hint,
+          `HTTP ${err.status ?? res.status}`,
+        ].filter(Boolean);
+        throw new Error(parts.join(" — ") || `Server returned ${res.status}`);
       }
 
       const { url, token, room_name, run_id } = await res.json();

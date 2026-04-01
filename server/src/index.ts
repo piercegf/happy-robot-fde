@@ -1,10 +1,20 @@
 import express from "express";
 import cors from "cors";
-import { HappyRobotClient } from "@happyrobot-ai/sdk";
+import { HappyRobotClient, ApiError } from "@happyrobot-ai/sdk";
 
 const PORT = process.env.PORT ?? 3001;
 const API_KEY = process.env.HAPPYROBOT_API_KEY;
 const WORKFLOW_ID = process.env.WORKFLOW_ID;
+
+/** Must match where the workflow is published in HappyRobot: development | staging | production */
+const _envRaw = (
+  process.env.HAPPYROBOT_ENVIRONMENT ||
+  process.env.WORKFLOW_ENVIRONMENT ||
+  "development"
+).toLowerCase();
+const WORKFLOW_ENV = (["development", "staging", "production"].includes(_envRaw)
+  ? _envRaw
+  : "development") as "development" | "staging" | "production";
 
 if (!API_KEY) {
   console.error("Missing HAPPYROBOT_API_KEY environment variable");
@@ -43,15 +53,39 @@ app.post("/api/voice/token", async (_req, res) => {
   try {
     const result = await client.voice.createToken({
       workflow_id: WORKFLOW_ID,
-      environment: "development",
+      env: WORKFLOW_ENV,
     });
     res.json(result);
   } catch (err) {
     console.error("Failed to create voice token:", err);
-    res.status(500).json({ error: "Failed to create voice token" });
+    if (err instanceof ApiError) {
+      const msg =
+        err.body?.message ||
+        err.body?.error ||
+        err.message ||
+        `HappyRobot API error (${err.status})`;
+      return res.status(err.status >= 400 && err.status < 600 ? err.status : 500).json({
+        error: "Failed to create voice token",
+        detail: msg,
+        status: err.status,
+        hint:
+          err.status === 401
+            ? "Check HAPPYROBOT_API_KEY in server/.env"
+            : err.status === 404
+              ? "Check WORKFLOW_ID and HAPPYROBOT_ENVIRONMENT (dev vs production publish)"
+              : undefined,
+      });
+    }
+    const message = err instanceof Error ? err.message : String(err);
+    res.status(500).json({
+      error: "Failed to create voice token",
+      detail: message,
+      hint: `Using environment="${WORKFLOW_ENV}". If the workflow is only published to Production, set HAPPYROBOT_ENVIRONMENT=production in server/.env`,
+    });
   }
 });
 
 app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`);
+  console.log(`HappyRobot voice: workflow=${WORKFLOW_ID} environment=${WORKFLOW_ENV}`);
 });
