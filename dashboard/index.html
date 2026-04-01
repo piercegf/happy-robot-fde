@@ -195,42 +195,10 @@ table.data-table{width:100%;border-collapse:collapse}
   </div>
 
   <div class="sidebar-section">
-    <div class="sidebar-section-label">General</div>
+    <div class="sidebar-section-label">Analytics</div>
     <a class="sidebar-link active">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
       Dashboard
-    </a>
-    <a class="sidebar-link">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-      Call Log
-    </a>
-  </div>
-
-  <div class="sidebar-section">
-    <div class="sidebar-section-label">Operate</div>
-    <a class="sidebar-link">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-      Conversations
-    </a>
-    <a class="sidebar-link">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-      Carrier Verify
-    </a>
-  </div>
-
-  <div class="sidebar-section">
-    <div class="sidebar-section-label">Resources</div>
-    <a class="sidebar-link">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      Load Board
-    </a>
-    <a class="sidebar-link">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      Rate Intel
-    </a>
-    <a class="sidebar-link">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
-      Tracker
     </a>
   </div>
 
@@ -284,13 +252,6 @@ table.data-table{width:100%;border-collapse:collapse}
           </div>
           <div class="mini-chart"><canvas id="chartHours"></canvas></div>
         </div>
-      </div>
-
-      <!-- Section: Outcomes Over Time -->
-      <div class="section-header">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="width:14px;height:14px;color:var(--t3)"><polyline points="6 9 12 15 18 9"/></svg>
-        <span class="section-title">Outcomes Over Time</span>
-        <span class="section-count" id="sectionOutcomeCount">(0 outcomes)</span>
       </div>
 
       <!-- KPI Cards -->
@@ -367,10 +328,6 @@ table.data-table{width:100%;border-collapse:collapse}
               Outcomes
               <span class="count-badge" id="outcomesCount">(0)</span>
             </h3>
-            <button class="export-btn">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Export
-            </button>
           </div>
           <table class="data-table">
             <thead>
@@ -396,10 +353,6 @@ table.data-table{width:100%;border-collapse:collapse}
               Top Lanes
               <span class="count-badge" id="lanesCount">(0)</span>
             </h3>
-            <button class="export-btn">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Export
-            </button>
           </div>
           <table class="data-table">
             <thead>
@@ -614,7 +567,6 @@ function buildOutcomesTable(data) {
   const order = ['booked','rejected','no_match','callback','not_authorized'];
   const tbody = document.getElementById('outcomesBody');
   document.getElementById('outcomesCount').textContent = `(${Object.keys(outcomes).length})`;
-  document.getElementById('sectionOutcomeCount').textContent = `(${Object.keys(outcomes).length} outcomes)`;
   tbody.innerHTML = order.filter(k => outcomes[k] !== undefined).map(k => {
     const meta = OUTCOME_META[k] || { dot:'gray', desc:'' };
     const count = outcomes[k];
@@ -625,8 +577,8 @@ function buildOutcomesTable(data) {
     const winClass = k === 'booked' ? pctBadgeClass(winPct) : 'gray';
     const winLabel = k === 'booked' ? formatPercent(winPct) : '—';
     return `<tr>
-      <td><span class="expand-toggle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></span></td>
-      <td><span class="status-dot ${meta.dot}"></span>${label}</td>
+      <td><span class="status-dot ${meta.dot}"></span></td>
+      <td>${label}</td>
       <td style="color:var(--t2);font-size:.78rem">${meta.desc}</td>
       <td class="num" style="font-weight:600">${count}</td>
       <td class="num">${pct}%</td>
