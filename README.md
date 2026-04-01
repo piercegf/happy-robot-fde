@@ -8,6 +8,8 @@
 
 <p align="center"><em>AI-powered inbound carrier sales for Acme Logistics: MC verification (FMCSA), load search, negotiation, post-call logging, and analytics.</em></p>
 
+<p align="center"><strong>Reviewer handoff (links, access, doc index):</strong> <code>docs/handoff_carlos.md</code></p>
+
 ---
 
 ## Architecture
@@ -82,6 +84,35 @@ To place test calls from the browser against your HappyRobot workflow (separate 
 
 1. **`server/`** — copy `server/.env.example` → `server/.env`, set `HAPPYROBOT_API_KEY`, `WORKFLOW_ID`, and `HAPPYROBOT_ENVIRONMENT` (`production` if the workflow is only published to prod). Run `npm install && npm run dev` (default port **3001**).
 2. **`client/`** — `npm install && npm run dev`. Vite proxies `/api/voice` to the token server. Use the printed localhost URL (5173, 5174, …).
+
+### Optional: hosted voice demo (one link for reviewers, e.g. Carlos)
+
+The token server must trust the static site’s origin (CORS). Set **`VOICE_CLIENT_ORIGINS`** to your deployed client URL(s), comma-separated, no trailing slash (e.g. `https://acme-voice.vercel.app`).
+
+**1. Deploy the token server (Railway example)**  
+- New service → same GitHub repo → set **Root Directory** to `server`.  
+- **Build**: `npm install` (default Nixpacks is fine).  
+- **Start**: `npm run start` (uses env from Railway, not `server/.env`).  
+- **Variables**: `HAPPYROBOT_API_KEY`, `WORKFLOW_ID`, `HAPPYROBOT_ENVIRONMENT`, and after step 3 **`VOICE_CLIENT_ORIGINS`** (your client URL).  
+- Note the public URL (e.g. `https://acme-voice-api.up.railway.app`).
+
+**2. Build the static client**  
+From `client/`:
+
+```bash
+npm install
+VITE_VOICE_SERVER_URL=https://YOUR_TOKEN_SERVER_URL npm run build
+```
+
+Use the Railway URL from step 1 (no trailing slash).
+
+**3. Host `client/dist/`**  
+Upload to Vercel, Netlify, Cloudflare Pages, or S3+CloudFront. Copy the site URL.
+
+**4. Finish CORS**  
+In the token service, set **`VOICE_CLIENT_ORIGINS`** to that site URL and redeploy. Then open the client URL and start a test call.
+
+**Easiest path if you skip hosting:** Carlos only needs the **operations dashboard** (`/dashboard` on Railway) plus **HappyRobot’s own web-call / test entry points** for voice—no custom client deploy.
 
 ### Seed Test Data
 

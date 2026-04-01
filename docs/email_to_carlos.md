@@ -1,19 +1,33 @@
 # Email to Carlos Becker
 
-**To:** Carlos Becker (c.becker@happyrobot.ai)
-**From:** Alejandro Pérez
-**Subject:** Inbound Carrier Sales — Build Update Ahead of Our Meeting
+**To:** Carlos Becker (c.becker@happyrobot.ai)  
+**From:** Alejandro Pérez  
+**Subject:** Inbound carrier sales build — live demo & reviewer handoff
 
 ---
 
 Hi Carlos,
 
-Wanted to share a quick update on the Acme Logistics inbound carrier sales build before we sit down. The full system is live: an inbound voice agent on HappyRobot that handles carrier verification through FMCSA, matches available loads via a custom API with fuzzy search, and runs rate negotiation with a 5% floor logic across up to three counter-offer rounds. I also built an operations dashboard that tracks conversion rates, revenue capture, carrier sentiment, top lanes, and peak calling hours in real time. You can see it all running here: https://happy-robot-fde-production-f148.up.railway.app/dashboard.
+Ahead of our meeting, here is the **production-ready** package for the Acme Logistics inbound carrier sales build.
 
-A few things I'd like to discuss when we meet. First, whether the negotiation floor should be dynamic per lane — high-demand lanes like Chicago to Dallas could probably hold tighter to the posted rate, while less popular lanes might need more flexibility to close. Second, how to handle mid-call lane changes gracefully — if a carrier calls about one lane and we don't have a match, we should be able to pivot and offer nearby alternatives without restarting the conversation. Third, I think there's a clear path to outbound follow-up calls for the callback outcomes we're seeing, and Spanish-language support would open up a meaningful segment of the carrier base.
+**Live operations dashboard** (open in browser — do not use a downloaded HTML file):  
+https://happy-robot-fde-production-f148.up.railway.app/dashboard  
 
-Everything is containerized and deployed on Railway. The repo is at https://github.com/piercegf/happy-robot-fde and the workflow is at https://platform.happyrobot.ai/fdealejandroperez/workflows/gchtmr5tol1e. The build doc with full technical details is in the repo under `/docs`.
+**HappyRobot workflow:**  
+https://platform.happyrobot.ai/fdealejandroperez/workflows/gchtmr5tol1e  
 
-Looking forward to walking you through everything.
+**Repository** (technical build, deployment notes, business summary):  
+https://github.com/piercegf/happy-robot-fde  
+
+**Reviewer handoff** (links, access model, doc index, discussion topics — same content you can forward internally):  
+`docs/handoff_carlos.md` in the repo root path above.
+
+**Scope in one line:** Voice agent on HappyRobot with tools to a FastAPI backend on Railway — FMCSA verification (with fallback), fuzzy load match, negotiation to a **95% floor** over up to three rounds, structured post-call outcomes, and a real-time ops dashboard (conversion, revenue capture vs posted rate, sentiment, lanes, peak hours).
+
+You can exercise **voice** from the HappyRobot side as you usually would; you do not need my local-only Vite token stack unless you want to mirror my dev setup (README optional section).
+
+I’d love your perspective in the meeting on **dynamic floors by lane**, **graceful lane pivots mid-call**, **outbound callback follow-up**, and **Spanish** for the carrier base.
+
+Looking forward to walking through it with you.
 
 — Alejandro
