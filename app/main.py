@@ -165,7 +165,7 @@ async def verify_carrier(mc_number: str, api_key: str = Security(verify_api_key)
                     "out_of_service": out_of_service,
                     "total_power_units": fleet.get("power_units", 0),
                     "total_drivers": fleet.get("drivers", 0),
-                    "source": "VerifyCarrier",
+                    "source": "FMCSA",
                 }
     except Exception:
         pass
