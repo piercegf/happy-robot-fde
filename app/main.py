@@ -1,16 +1,17 @@
-import os
-import uuid
 import json
+import os
+import re
+import uuid
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Optional
 
 import httpx
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException, Security, Request
+from fastapi import FastAPI, HTTPException, Security
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.security import APIKeyHeader
-from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, model_validator
 
 from app.database import (
@@ -39,7 +40,8 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    # Do not use allow_credentials=True with wildcard origins (invalid per fetch spec).
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -101,6 +103,11 @@ class CallLogRequest(BaseModel):
     @classmethod
     def coerce_numeric_fields(cls, values):
         if isinstance(values, dict):
+            if values.get("sentiment") in (None, "") and values.get("sentiment_classifier") not in (
+                None,
+                "",
+            ):
+                values["sentiment"] = values["sentiment_classifier"]
             values["loadboard_rate"] = _coerce_float(values.get("loadboard_rate"))
             values["agreed_rate"] = _coerce_float(values.get("agreed_rate"))
             values["negotiation_rounds"] = _coerce_int(values.get("negotiation_rounds"), 0)
@@ -141,8 +148,7 @@ async def health():
 
 @app.get("/api/carrier/verify/{mc_number}")
 async def verify_carrier(mc_number: str, api_key: str = Security(verify_api_key)):
-    import re
-    mc_number = re.sub(r'^[Mm][Cc]-?', '', mc_number.strip())
+    mc_number = re.sub(r"^[Mm][Cc]-?", "", mc_number.strip())
 
     # Try FMCSA official API first
     if FMCSA_WEBKEY:
@@ -325,8 +331,11 @@ async def dashboard():
 
 @app.get("/dashboard/{filename}")
 async def dashboard_static(filename: str):
-    import pathlib
-    filepath = pathlib.Path("dashboard") / filename
-    if filepath.exists() and filepath.is_file():
-        return FileResponse(str(filepath))
-    raise HTTPException(status_code=404, detail="File not found")
+    root = Path("dashboard").resolve()
+    try:
+        candidate = (root / filename).resolve()
+    except OSError:
+        raise HTTPException(status_code=404, detail="File not found")
+    if not candidate.is_relative_to(root) or not candidate.is_file():
+        raise HTTPException(status_code=404, detail="File not found")
+    return FileResponse(str(candidate))

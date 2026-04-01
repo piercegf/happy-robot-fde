@@ -368,16 +368,10 @@ def clear_all_calls() -> int:
 
 
 BOOKED_OUTCOMES = ("booked", "load_booked")
-REJECTED_OUTCOMES = ("rejected", "no_agreement")
 
 
 def _is_booked(outcome_col="outcome"):
     vals = ",".join(f"'{v}'" for v in BOOKED_OUTCOMES)
-    return f"{outcome_col} IN ({vals})"
-
-
-def _is_rejected(outcome_col="outcome"):
-    vals = ",".join(f"'{v}'" for v in REJECTED_OUTCOMES)
     return f"{outcome_col} IN ({vals})"
 
 
@@ -396,9 +390,7 @@ def get_call_metrics():
         "top_lanes": [], "avg_call_duration": 0, "calls_over_time": {},
         "booked_by_equipment": {}, "avg_rate_by_lane": [],
         "negotiation_success_rate": 0, "calls_by_hour": {},
-        "avg_time_to_book": 0, "revenue_per_minute": 0,
-        "missed_revenue": 0, "sentiment_to_booking": {},
-        "top_carriers": [], "recent_calls": [], "all_calls": [],
+        "all_calls": [],
         "call_flow_funnel": {"total": 0, "verified": 0, "eligible": 0, "loads_searched": 0, "negotiated": 0, "booked": 0},
     }
 
@@ -490,50 +482,6 @@ def get_call_metrics():
     """)
     calls_by_hour = {str(row["hr"]): row["cnt"] for row in cur.fetchall()}
 
-    cur.execute(
-        f"SELECT AVG(call_duration_seconds) FROM calls WHERE {_is_booked()} "
-        "AND call_duration_seconds IS NOT NULL AND call_duration_seconds > 0"
-    )
-    avg_time_to_book = round(cur.fetchone()[0] or 0, 1)
-
-    cur.execute(
-        "SELECT SUM(call_duration_seconds) FROM calls "
-        "WHERE call_duration_seconds IS NOT NULL AND call_duration_seconds > 0"
-    )
-    total_call_seconds = cur.fetchone()[0] or 0
-    revenue_per_minute = round((total_revenue_booked / (total_call_seconds / 60)), 2) if total_call_seconds > 0 else 0
-
-    cur.execute(f"SELECT SUM(loadboard_rate) FROM calls WHERE {_is_rejected()} AND loadboard_rate IS NOT NULL")
-    missed_revenue = round(cur.fetchone()[0] or 0, 2)
-
-    cur.execute(f"""
-        SELECT sentiment,
-            ROUND(SUM(CASE WHEN {_is_booked()} THEN 1.0 ELSE 0 END) / COUNT(*) * 100, 1) as book_rate
-        FROM calls WHERE sentiment IS NOT NULL
-        GROUP BY sentiment
-    """)
-    sentiment_to_booking = {row["sentiment"]: row["book_rate"] for row in cur.fetchall()}
-
-    cur.execute(f"""
-        SELECT carrier_name, COUNT(*) as cnt,
-            SUM(CASE WHEN {_is_booked()} THEN 1 ELSE 0 END) as booked_cnt,
-            ROUND(SUM(COALESCE(agreed_rate, 0)), 2) as total_rev
-        FROM calls WHERE carrier_name IS NOT NULL
-        GROUP BY carrier_name ORDER BY cnt DESC LIMIT 8
-    """)
-    top_carriers = [
-        {"name": r["carrier_name"], "calls": r["cnt"], "booked": r["booked_cnt"], "revenue": r["total_rev"]}
-        for r in cur.fetchall()
-    ]
-
-    cur.execute("""
-        SELECT call_id, timestamp, carrier_name, carrier_mc,
-            requested_origin || ' → ' || requested_destination as lane,
-            outcome, sentiment, agreed_rate, call_duration_seconds
-        FROM calls ORDER BY timestamp DESC LIMIT 10
-    """)
-    recent_calls = [dict(r) for r in cur.fetchall()]
-
     cur.execute("""
         SELECT call_id, timestamp, carrier_name, carrier_mc,
             requested_origin, requested_destination, equipment_type,
@@ -590,12 +538,6 @@ def get_call_metrics():
         "avg_rate_by_lane": avg_rate_by_lane,
         "negotiation_success_rate": negotiation_success_rate,
         "calls_by_hour": calls_by_hour,
-        "avg_time_to_book": avg_time_to_book,
-        "revenue_per_minute": revenue_per_minute,
-        "missed_revenue": missed_revenue,
-        "sentiment_to_booking": sentiment_to_booking,
-        "top_carriers": top_carriers,
-        "recent_calls": recent_calls,
         "all_calls": all_calls,
         "call_flow_funnel": call_flow_funnel,
     }

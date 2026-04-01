@@ -800,7 +800,7 @@ function buildRateIntelChart(data) {
 }
 
 function buildCallLog(data) {
-  const calls = data.all_calls || data.recent_calls || [];
+  const calls = data.all_calls || [];
   const tbody = document.getElementById('callLogBody');
   if(!calls.length){
     tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;color:var(--t3);padding:24px">No calls yet — make a call to see live data</td></tr>';
