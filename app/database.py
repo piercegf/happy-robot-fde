@@ -355,6 +355,18 @@ def get_all_calls():
     return rows
 
 
+def clear_all_calls() -> int:
+    """Delete every row in calls. Loads (knowledge base) are unchanged."""
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT COUNT(*) FROM calls")
+    n = cur.fetchone()[0]
+    cur.execute("DELETE FROM calls")
+    conn.commit()
+    conn.close()
+    return n
+
+
 BOOKED_OUTCOMES = ("booked", "load_booked")
 REJECTED_OUTCOMES = ("rejected", "no_agreement")
 

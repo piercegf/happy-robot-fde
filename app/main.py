@@ -20,6 +20,7 @@ from app.database import (
     get_all_loads,
     log_call,
     get_all_calls,
+    clear_all_calls,
     get_call_metrics,
     get_carrier_intelligence,
 )
@@ -308,6 +309,13 @@ async def carrier_intelligence(api_key: str = Security(verify_api_key)):
 @app.get("/api/metrics")
 async def metrics(api_key: str = Security(verify_api_key)):
     return get_call_metrics()
+
+
+@app.post("/api/admin/clear-calls")
+async def admin_clear_calls(api_key: str = Security(verify_api_key)):
+    """Remove all call log rows. Same auth as the rest of the API (demo admin)."""
+    deleted = clear_all_calls()
+    return {"status": "ok", "deleted": deleted}
 
 
 @app.get("/dashboard")

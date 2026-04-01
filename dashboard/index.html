@@ -54,6 +54,8 @@ body{background:var(--bg);color:var(--t1);font-family:'Inter',system-ui,sans-ser
 .topbar-spacer{flex:1}
 .refresh-btn{background:none;border:1px solid var(--border);border-radius:8px;color:var(--t2);cursor:pointer;width:34px;height:34px;display:flex;align-items:center;justify-content:center;transition:all .15s}
 .refresh-btn:hover{border-color:var(--accent);color:var(--accent)}
+.admin-clear-btn{background:transparent;border:1px solid rgba(239,68,68,.4);color:#B91C1C;border-radius:8px;padding:7px 12px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .15s}
+.admin-clear-btn:hover{background:rgba(239,68,68,.08);border-color:var(--red);color:var(--red)}
 .refresh-btn.spinning svg{animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .live-badge{display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--t2);font-weight:500}
@@ -268,6 +270,7 @@ table.data-table{width:100%;border-collapse:collapse}
     <span class="topbar-divider"></span>
     <span class="topbar-spacer"></span>
     <span class="topbar-timestamp" id="lastUpdated">—</span>
+    <button type="button" class="admin-clear-btn" id="clearCallsBtn" title="Deletes all rows in the call log. Load knowledge base is not affected.">Clear call data</button>
     <button class="refresh-btn" id="refreshBtn" title="Refresh">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
     </button>
@@ -1105,8 +1108,35 @@ function retryConnection() {
   fetchData();
 }
 
+async function clearCallData() {
+  if (!confirm('Delete all call log rows? The load knowledge base will not be changed.')) return;
+  const btn = document.getElementById('clearCallsBtn');
+  btn.disabled = true;
+  try {
+    const resp = await fetch(API_BASE + '/api/admin/clear-calls', {
+      method: 'POST',
+      headers: { 'X-API-Key': API_KEY },
+    });
+    if (!resp.ok) {
+      const t = await resp.text();
+      throw new Error(t || 'HTTP ' + resp.status);
+    }
+    const j = await resp.json();
+    if (currentNav === 'dashboard') await fetchData();
+    else if (currentNav === 'conversations') await fetchConversations();
+    else await fetchData();
+    alert('Removed ' + (j.deleted ?? 0) + ' call(s).');
+  } catch (e) {
+    console.error(e);
+    alert('Could not clear calls: ' + (e.message || e));
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 fetchData();
 setInterval(() => { if (currentNav === 'dashboard') fetchData(); }, 30000);
+document.getElementById('clearCallsBtn').addEventListener('click', clearCallData);
 document.getElementById('refreshBtn').addEventListener('click', () => {
   if (currentNav === 'dashboard') fetchData();
   else refreshOtherViews();
