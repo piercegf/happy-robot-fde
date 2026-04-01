@@ -114,6 +114,9 @@ async def health():
 
 @app.get("/api/carrier/verify/{mc_number}")
 async def verify_carrier(mc_number: str, api_key: str = Security(verify_api_key)):
+    import re
+    mc_number = re.sub(r'^[Mm][Cc]-?', '', mc_number.strip())
+
     # Try FMCSA official API first
     if FMCSA_WEBKEY:
         try:
