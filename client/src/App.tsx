@@ -29,6 +29,7 @@ export function App() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [logs, setLogs] = useState<LogEntry[]>([]);
+  const [logOpen, setLogOpen] = useState(false);
   const [elapsed, setElapsed] = useState(0);
   const connectionRef = useRef<VoiceConnection | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -177,8 +178,6 @@ export function App() {
         <div style={styles.topbar}>
           <img src="/logo.png" alt="Acme Logistics" width={32} height={32} style={{ borderRadius: 6, objectFit: "contain" }} />
           <span style={styles.topbarTitle}>Inbound Call Simulator</span>
-          <div style={styles.topbarDivider} />
-          <span style={styles.topbarSub}>Web SDK Test Client</span>
           <div style={{ flex: 1 }} />
           {isConnected && (
             <div style={styles.liveBadge}>
@@ -253,37 +252,50 @@ export function App() {
             </div>
           </div>
 
-          {/* Event log */}
+          {/* Event log (collapsed by default) */}
           <div style={styles.logCard}>
-            <div style={styles.logHeader}>
-              <span style={styles.logTitle}>Event Log</span>
+            <button
+              type="button"
+              style={{
+                ...styles.logToggle,
+                borderBottom: logOpen ? "1px solid #E5E7EB" : "none",
+              }}
+              onClick={() => setLogOpen((o) => !o)}
+              aria-expanded={logOpen}
+            >
+              <span style={styles.logToggleLeft}>
+                <ChevronIcon open={logOpen} />
+                <span style={styles.logTitle}>Event Log</span>
+              </span>
               <span style={styles.logCount}>{logs.length} events</span>
-            </div>
-            <div style={styles.logBody}>
-              {logs.length === 0 ? (
-                <div style={styles.logEmpty}>Events will appear here when you start a call</div>
-              ) : (
-                logs.map((log, i) => (
-                  <div key={i} style={styles.logRow}>
-                    <span style={styles.logTime}>{log.time}</span>
-                    <span
-                      style={{
-                        ...styles.logDot,
-                        background:
-                          log.type === "success"
-                            ? "#22C55E"
-                            : log.type === "error"
-                            ? "#EF4444"
-                            : log.type === "event"
-                            ? "#F97316"
-                            : "#3B82F6",
-                      }}
-                    />
-                    <span style={styles.logMsg}>{log.message}</span>
-                  </div>
-                ))
-              )}
-            </div>
+            </button>
+            {logOpen && (
+              <div style={styles.logBody}>
+                {logs.length === 0 ? (
+                  <div style={styles.logEmpty}>Events will appear here when you start a call</div>
+                ) : (
+                  logs.map((log, i) => (
+                    <div key={i} style={styles.logRow}>
+                      <span style={styles.logTime}>{log.time}</span>
+                      <span
+                        style={{
+                          ...styles.logDot,
+                          background:
+                            log.type === "success"
+                              ? "#22C55E"
+                              : log.type === "error"
+                              ? "#EF4444"
+                              : log.type === "event"
+                              ? "#F97316"
+                              : "#3B82F6",
+                        }}
+                      />
+                      <span style={styles.logMsg}>{log.message}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -363,6 +375,30 @@ function DashIcon() {
   );
 }
 
+function ChevronIcon({ open }: { open: boolean }) {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{
+        flexShrink: 0,
+        color: "#6B7280",
+        transform: open ? "rotate(90deg)" : "rotate(0deg)",
+        transition: "transform 0.15s ease",
+      }}
+      aria-hidden
+    >
+      <path d="M9 18l6-6-6-6" />
+    </svg>
+  );
+}
+
 const styles: Record<string, React.CSSProperties> = {
   page: { display: "flex", minHeight: "100vh", background: "#F4F5F7", fontFamily: "'Inter', system-ui, sans-serif", color: "#111827", margin: 0 },
 
@@ -378,8 +414,6 @@ const styles: Record<string, React.CSSProperties> = {
   main: { flex: 1, display: "flex", flexDirection: "column" as const, minHeight: "100vh" },
   topbar: { background: "#fff", borderBottom: "1px solid #E5E7EB", padding: "16px 32px", display: "flex", alignItems: "center", gap: 16 },
   topbarTitle: { fontSize: "1.05rem", fontWeight: 600 },
-  topbarDivider: { width: 1, height: 20, background: "#E5E7EB" },
-  topbarSub: { fontSize: "0.82rem", color: "#6B7280" },
   liveBadge: { display: "flex", alignItems: "center", gap: 8 },
   liveDot: { width: 8, height: 8, background: "#22C55E", borderRadius: "50%", animation: "pulse 2s ease-in-out infinite" },
 
@@ -401,8 +435,20 @@ const styles: Record<string, React.CSSProperties> = {
   btnDisabled: { padding: "12px 28px", background: "#E5E7EB", color: "#9CA3AF", border: "none", borderRadius: 10, fontSize: "0.9rem", fontWeight: 600, cursor: "not-allowed" },
 
   logCard: { background: "#fff", border: "1px solid #E5E7EB", borderRadius: 12, overflow: "hidden", flex: 1 },
-  logHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderBottom: "1px solid #E5E7EB" },
-  logTitle: { fontSize: "0.85rem", fontWeight: 600 },
+  logToggle: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",
+    padding: "14px 20px",
+    border: "none",
+    background: "#fff",
+    cursor: "pointer",
+    textAlign: "left" as const,
+    fontFamily: "inherit",
+  },
+  logToggleLeft: { display: "flex", alignItems: "center", gap: 10 },
+  logTitle: { fontSize: "0.85rem", fontWeight: 600, color: "#111827" },
   logCount: { fontSize: "0.75rem", color: "#9CA3AF" },
   logBody: { padding: "8px 0", maxHeight: 320, overflowY: "auto" as const },
   logEmpty: { padding: "40px 20px", textAlign: "center" as const, color: "#9CA3AF", fontSize: "0.85rem" },
