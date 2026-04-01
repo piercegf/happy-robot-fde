@@ -362,6 +362,42 @@ def get_call_metrics():
     cur.execute("SELECT AVG(call_duration_seconds) FROM calls WHERE outcome = 'booked'")
     avg_time_to_book = round(cur.fetchone()[0] or 0, 1)
 
+    total_call_seconds = 0
+    cur.execute("SELECT SUM(call_duration_seconds) FROM calls WHERE call_duration_seconds IS NOT NULL")
+    total_call_seconds = cur.fetchone()[0] or 0
+    revenue_per_minute = round((total_revenue_booked / (total_call_seconds / 60)), 2) if total_call_seconds > 0 else 0
+
+    cur.execute("SELECT SUM(loadboard_rate) FROM calls WHERE outcome = 'rejected' AND loadboard_rate IS NOT NULL")
+    missed_revenue = round(cur.fetchone()[0] or 0, 2)
+
+    cur.execute("""
+        SELECT sentiment, 
+            ROUND(SUM(CASE WHEN outcome='booked' THEN 1.0 ELSE 0 END) / COUNT(*) * 100, 1) as book_rate
+        FROM calls WHERE sentiment IS NOT NULL
+        GROUP BY sentiment
+    """)
+    sentiment_to_booking = {row["sentiment"]: row["book_rate"] for row in cur.fetchall()}
+
+    cur.execute("""
+        SELECT carrier_name, COUNT(*) as cnt, 
+            SUM(CASE WHEN outcome='booked' THEN 1 ELSE 0 END) as booked_cnt,
+            ROUND(SUM(COALESCE(agreed_rate, 0)), 2) as total_rev
+        FROM calls WHERE carrier_name IS NOT NULL
+        GROUP BY carrier_name ORDER BY cnt DESC LIMIT 8
+    """)
+    top_carriers = [
+        {"name": r["carrier_name"], "calls": r["cnt"], "booked": r["booked_cnt"], "revenue": r["total_rev"]}
+        for r in cur.fetchall()
+    ]
+
+    cur.execute("""
+        SELECT call_id, timestamp, carrier_name, carrier_mc,
+            requested_origin || ' → ' || requested_destination as lane,
+            outcome, sentiment, agreed_rate, call_duration_seconds
+        FROM calls ORDER BY timestamp DESC LIMIT 10
+    """)
+    recent_calls = [dict(r) for r in cur.fetchall()]
+
     conn.close()
 
     return {
@@ -382,4 +418,9 @@ def get_call_metrics():
         "negotiation_success_rate": negotiation_success_rate,
         "calls_by_hour": calls_by_hour,
         "avg_time_to_book": avg_time_to_book,
+        "revenue_per_minute": revenue_per_minute,
+        "missed_revenue": missed_revenue,
+        "sentiment_to_booking": sentiment_to_booking,
+        "top_carriers": top_carriers,
+        "recent_calls": recent_calls,
     }

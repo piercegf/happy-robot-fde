@@ -254,7 +254,7 @@ table.data-table{width:100%;border-collapse:collapse}
         </div>
       </div>
 
-      <!-- KPI Cards -->
+      <!-- KPI Cards Row 1 -->
       <div class="kpi-row">
         <div class="kpi-card">
           <div class="kpi-icon green">
@@ -294,6 +294,40 @@ table.data-table{width:100%;border-collapse:collapse}
             <div class="kpi-label">Avg Negotiation Rounds</div>
             <div class="kpi-value" id="kpiNegRounds"><span class="skeleton skeleton-value"></span></div>
             <div class="kpi-sub">per call</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI Cards Row 2 -->
+      <div class="kpi-row" style="grid-template-columns:repeat(3,1fr)">
+        <div class="kpi-card">
+          <div class="kpi-icon green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-label">Revenue / Minute</div>
+            <div class="kpi-value" id="kpiRevMin"><span class="skeleton skeleton-value"></span></div>
+            <div class="kpi-sub">agent efficiency</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon red" style="background:rgba(239,68,68,.1)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--red)"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-label">Missed Revenue</div>
+            <div class="kpi-value" style="color:var(--red)" id="kpiMissed"><span class="skeleton skeleton-value"></span></div>
+            <div class="kpi-sub">rejected call value</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon green">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <div class="kpi-body">
+            <div class="kpi-label">Negotiation Win Rate</div>
+            <div class="kpi-value" id="kpiNegWin"><span class="skeleton skeleton-value"></span></div>
+            <div class="kpi-sub">negotiated → booked</div>
           </div>
         </div>
       </div>
@@ -413,6 +447,42 @@ table.data-table{width:100%;border-collapse:collapse}
             <tbody id="equipmentBody"></tbody>
           </table>
         </div>
+      </div>
+
+      <!-- Rate Intelligence -->
+      <div class="table-card" style="margin-bottom:20px">
+        <div class="table-card-header">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            Rate Intelligence — Posted vs Agreed by Lane
+          </h3>
+        </div>
+        <div style="padding:16px 20px;height:220px"><canvas id="chartRateIntel"></canvas></div>
+      </div>
+
+      <!-- Recent Calls Live Feed -->
+      <div class="table-card" style="margin-bottom:20px">
+        <div class="table-card-header">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            Recent Calls
+            <span class="live-badge" style="margin-left:8px"><span class="live-dot"></span>Live</span>
+          </h3>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:32px"></th>
+              <th>Carrier</th>
+              <th>Lane</th>
+              <th>Outcome</th>
+              <th>Sentiment</th>
+              <th class="num-right">Rate</th>
+              <th class="num-right">Duration</th>
+            </tr>
+          </thead>
+          <tbody id="recentCallsBody"></tbody>
+        </table>
       </div>
 
     </div><!-- /dashboardContent -->
@@ -648,6 +718,61 @@ function buildEquipmentTable(data) {
   }).join('');
 }
 
+function buildRateIntelChart(data) {
+  const lanes = data.avg_rate_by_lane || [];
+  if (lanes.length === 0) return;
+  const labels = lanes.map(l => l.lane.length > 25 ? l.lane.substring(0, 22) + '...' : l.lane);
+  charts.rateIntel = new Chart(document.getElementById('chartRateIntel'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [
+        { label: 'Posted Rate', data: lanes.map(l => l.avg_loadboard), backgroundColor: 'rgba(59,130,246,0.7)', borderRadius: 4, barPercentage: 0.4, categoryPercentage: 0.7 },
+        { label: 'Agreed Rate', data: lanes.map(l => l.avg_agreed), backgroundColor: 'rgba(34,197,94,0.7)', borderRadius: 4, barPercentage: 0.4, categoryPercentage: 0.7 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+      plugins: {
+        legend: { position: 'top', align: 'end', labels: { boxWidth: 12, padding: 16, font: { size: 11 } } },
+        tooltip: { callbacks: { label: ctx => ctx.dataset.label + ': $' + Math.round(ctx.parsed.x).toLocaleString() } }
+      },
+      scales: {
+        x: { grid: { color: 'rgba(0,0,0,.05)' }, ticks: { callback: v => '$' + (v/1000).toFixed(1) + 'k', font: { size: 11 } }, border: { display: false } },
+        y: { grid: { display: false }, ticks: { font: { size: 11 } }, border: { display: false } },
+      }
+    }
+  });
+}
+
+function buildRecentCalls(data) {
+  const calls = data.recent_calls || [];
+  const tbody = document.getElementById('recentCallsBody');
+  if (calls.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--t3);padding:24px">No calls yet — make a call to see live data</td></tr>';
+    return;
+  }
+  tbody.innerHTML = calls.map(c => {
+    const outMeta = OUTCOME_META[c.outcome] || { dot: 'gray' };
+    const sentMeta = SENTIMENT_META[c.sentiment] || { dot: 'gray' };
+    const outLabel = (c.outcome || 'unknown').replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+    const sentLabel = (c.sentiment || 'unknown').charAt(0).toUpperCase() + (c.sentiment || '').slice(1);
+    const rate = c.agreed_rate ? formatCurrency(c.agreed_rate) : '—';
+    const dur = c.call_duration_seconds ? formatDuration(c.call_duration_seconds) : '—';
+    const color = AVATAR_COLORS[Math.abs((c.carrier_name || '').charCodeAt(0) - 65) % AVATAR_COLORS.length];
+    const initials = (c.carrier_name || '??').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+    return `<tr>
+      <td><div class="carrier-avatar" style="background:${color};width:28px;height:28px;font-size:.6rem">${initials}</div></td>
+      <td style="font-weight:500">${c.carrier_name || 'Unknown'}</td>
+      <td style="color:var(--t2);font-size:.78rem">${c.lane || '—'}</td>
+      <td><span class="status-dot ${outMeta.dot}"></span>${outLabel}</td>
+      <td><span class="status-dot ${sentMeta.dot}"></span>${sentLabel}</td>
+      <td class="num-right">${rate}</td>
+      <td class="num-right" style="color:var(--t2);font-family:'JetBrains Mono',monospace;font-size:.78rem">${dur}</td>
+    </tr>`;
+  }).join('');
+}
+
 function showError() {
   document.getElementById('errorState').style.display = 'block';
   document.getElementById('dashboardContent').style.display = 'none';
@@ -685,15 +810,22 @@ async function fetchData() {
     const pct = data.total_potential_revenue > 0 ? (data.total_revenue_booked / data.total_potential_revenue) * 100 : 0;
     document.getElementById('revBar').style.width = pct + '%';
 
+    // New KPIs
+    document.getElementById('kpiRevMin').textContent = formatCurrency(data.revenue_per_minute);
+    document.getElementById('kpiMissed').textContent = formatCurrency(data.missed_revenue);
+    document.getElementById('kpiNegWin').textContent = formatPercent(data.negotiation_success_rate);
+
     // Charts
     buildVolumeChart(data);
     buildHoursChart(data);
+    buildRateIntelChart(data);
 
     // Tables
     buildOutcomesTable(data);
     buildLanesTable(data);
     buildSentimentTable(data);
     buildEquipmentTable(data);
+    buildRecentCalls(data);
 
     document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString('en-US', { hour:'2-digit', minute:'2-digit', second:'2-digit' });
   } catch (err) {
