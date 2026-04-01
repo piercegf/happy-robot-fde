@@ -157,18 +157,84 @@ The operations dashboard tracks metrics chosen specifically for freight brokerag
 
 ---
 
-## 8. Deployment
+## 8. Deployment & Operations
 
-The system is fully containerized and deployed as a single service:
+### 8.1 How to access the deployment
 
-- **Containerization:** Docker image based on Python 3.12-slim, ~120MB final image
-- **Platform:** Railway cloud (single-click deploy from GitHub)
-- **Endpoints:** One URL serves both the API and the dashboard
-- **Persistence:** SQLite database stored in a mounted volume
-- **Health Check:** `/health` endpoint returns status, timestamp, and version
-- **Restart Policy:** Automatic restart on failure (up to 10 retries)
+**Production (example — use your live Railway hostname):**
 
-To deploy: push to the connected GitHub repository. Railway builds the Docker image and deploys automatically.
+| What | URL / method |
+|------|----------------|
+| **Operations dashboard** | `https://<your-railway-host>/dashboard` — open in a browser. The server injects the API key into the page; do not rely on opening a static HTML file from disk. |
+| **API root** | `https://<your-railway-host>/` redirects to `/dashboard`. |
+| **Health check** (no auth) | `GET https://<your-railway-host>/health` — JSON status, timestamp, version. |
+| **All other API routes** | Require header `X-API-Key: <your API_KEY>`. Examples: `GET /api/metrics`, `POST /api/loads/search`, `POST /api/calls/log`. |
+
+**Transport:** Railway terminates **HTTPS** at the edge; clients always use `https://`.
+
+**Credentials:** The value of `API_KEY` is set in Railway project variables (and in `.env` for local). Anyone who can open `/dashboard` can inspect the injected key in the browser — treat the dashboard URL as an **admin** surface and use a strong, rotatable key.
+
+**HappyRobot workflow:** The voice agent is configured in the HappyRobot platform; tool/webhook base URL must point at this same `https://<your-railway-host>` origin so verification, load search, negotiate, and call logging succeed.
+
+---
+
+### 8.2 How to reproduce the deployment
+
+There is **no Terraform** in this repository; reproduction is **manual** via Railway and/or **Docker** as below.
+
+#### Option A — Railway (matches production)
+
+1. **Prerequisites:** GitHub account, [Railway](https://railway.app) account, repository access.
+2. **Create service:** New Project → Deploy from GitHub → select this repo → Railway reads `railway.json` and builds with the **Dockerfile**.
+3. **Environment variables** (Railway → service → Variables):
+
+   | Variable | Required | Purpose |
+   |----------|----------|---------|
+   | `API_KEY` | Yes | Authenticates all API requests and is injected into `/dashboard`. |
+   | `PORT` | No | Set automatically by Railway; app uses `${PORT:-8000}`. |
+   | `FMCSA_WEBKEY` | No | Enables primary FMCSA mobile API; if unset, fallback lookup is used when possible. |
+   | `DB_PATH` | No | Default `data/carrier_sales.db`. Use a persistent volume path if you attach a volume. |
+
+4. **Persistence (optional):** Add a **volume** mounted at `/app/data` (or align `DB_PATH` with that path) so SQLite survives redeploys.
+5. **Deploy:** Push to the connected branch; Railway rebuilds and rolls out. **Access** the generated public URL + `/dashboard`.
+
+`railway.json` specifies Docker build, start command:  
+`uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}`, and restart on failure (up to 10 retries).
+
+#### Option B — Docker Compose (local or any Docker host)
+
+From the repository root:
+
+```bash
+cp .env.example .env   # set API_KEY and optionally FMCSA_WEBKEY
+mkdir -p data
+docker compose up --build
+```
+
+- API and dashboard: `http://localhost:8000` (dashboard at `/dashboard`).
+- Compose file mounts `./data` so the SQLite file persists on the host.
+
+#### Option C — Local Python (development)
+
+```bash
+python -m venv venv && source venv/bin/activate  # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+cp .env.example .env && mkdir -p data
+uvicorn app.main:app --reload --port 8000
+```
+
+Use `http://localhost:8000/dashboard` and pass `X-API-Key` on API calls.
+
+#### Optional — Web voice test client (not part of broker production path)
+
+For browser-based test calls against HappyRobot: run `server/` (token API, port **3001**) and `client/` (Vite) per repository `README.md`. Production carrier traffic uses the HappyRobot **web call** trigger; this stack is for local QA only.
+
+---
+
+### 8.3 Container summary
+
+- **Image:** `python:3.12-slim`, dependencies from `requirements.txt`, app copied to `/app`.
+- **Process:** single Uvicorn worker serving FastAPI (suitable for demo scale; scale-out would add workers/replicas behind Railway).
 
 ---
 
