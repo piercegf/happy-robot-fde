@@ -281,7 +281,7 @@ def get_carrier_intelligence():
             agg["revenue_booked"] += float(c.get("agreed_rate") or 0)
         agg["negotiation_sum"] += int(c.get("negotiation_rounds") or 0)
         dur = c.get("call_duration_seconds")
-        if dur is not None:
+        if dur is not None and int(dur) > 0:
             agg["duration_sum"] += int(dur)
             agg["duration_n"] += 1
         sent = c.get("sentiment")
@@ -434,7 +434,10 @@ def get_call_metrics():
     """)
     top_lanes = [{"lane": r["lane"], "count": r["cnt"], "booking_rate": r["booking_rate"]} for r in cur.fetchall()]
 
-    cur.execute("SELECT AVG(call_duration_seconds) FROM calls")
+    cur.execute(
+        "SELECT AVG(call_duration_seconds) FROM calls "
+        "WHERE call_duration_seconds IS NOT NULL AND call_duration_seconds > 0"
+    )
     avg_call_duration = round(cur.fetchone()[0] or 0, 1)
 
     cur.execute("""
@@ -475,10 +478,16 @@ def get_call_metrics():
     """)
     calls_by_hour = {str(row["hr"]): row["cnt"] for row in cur.fetchall()}
 
-    cur.execute(f"SELECT AVG(call_duration_seconds) FROM calls WHERE {_is_booked()}")
+    cur.execute(
+        f"SELECT AVG(call_duration_seconds) FROM calls WHERE {_is_booked()} "
+        "AND call_duration_seconds IS NOT NULL AND call_duration_seconds > 0"
+    )
     avg_time_to_book = round(cur.fetchone()[0] or 0, 1)
 
-    cur.execute("SELECT SUM(call_duration_seconds) FROM calls WHERE call_duration_seconds IS NOT NULL")
+    cur.execute(
+        "SELECT SUM(call_duration_seconds) FROM calls "
+        "WHERE call_duration_seconds IS NOT NULL AND call_duration_seconds > 0"
+    )
     total_call_seconds = cur.fetchone()[0] or 0
     revenue_per_minute = round((total_revenue_booked / (total_call_seconds / 60)), 2) if total_call_seconds > 0 else 0
 
@@ -523,14 +532,22 @@ def get_call_metrics():
     """)
     all_calls = [dict(r) for r in cur.fetchall()]
 
-    # Call flow funnel
-    cur.execute("SELECT COUNT(*) FROM calls WHERE carrier_mc IS NOT NULL AND carrier_mc != ''")
+    # Call flow funnel — sequential pipeline (each stage ⊆ previous, matches real workflow order)
+    _mc = "carrier_mc IS NOT NULL AND TRIM(carrier_mc) != ''"
+    _not_ineligible = (
+        "(outcome IS NULL OR outcome NOT IN ('carrier_not_eligible', 'not_authorized'))"
+    )
+    _eligible = f"({_mc}) AND {_not_ineligible}"
+    _loads = f"({_eligible}) AND requested_origin IS NOT NULL AND TRIM(requested_origin) != ''"
+    _negotiated = f"({_loads}) AND (negotiation_rounds > 0 OR {_is_booked()})"
+
+    cur.execute(f"SELECT COUNT(*) FROM calls WHERE {_mc}")
     verified = cur.fetchone()[0]
-    cur.execute(f"SELECT COUNT(*) FROM calls WHERE outcome NOT IN ('carrier_not_eligible', 'not_authorized')")
+    cur.execute(f"SELECT COUNT(*) FROM calls WHERE {_eligible}")
     eligible = cur.fetchone()[0]
-    cur.execute("SELECT COUNT(*) FROM calls WHERE requested_origin IS NOT NULL AND requested_origin != ''")
+    cur.execute(f"SELECT COUNT(*) FROM calls WHERE {_loads}")
     loads_searched = cur.fetchone()[0]
-    cur.execute("SELECT COUNT(*) FROM calls WHERE negotiation_rounds > 0")
+    cur.execute(f"SELECT COUNT(*) FROM calls WHERE {_negotiated}")
     negotiated = cur.fetchone()[0]
 
     call_flow_funnel = {

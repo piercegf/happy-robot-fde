@@ -103,7 +103,11 @@ class CallLogRequest(BaseModel):
             values["loadboard_rate"] = _coerce_float(values.get("loadboard_rate"))
             values["agreed_rate"] = _coerce_float(values.get("agreed_rate"))
             values["negotiation_rounds"] = _coerce_int(values.get("negotiation_rounds"), 0)
-            values["call_duration_seconds"] = _coerce_int(values.get("call_duration_seconds"))
+            raw_dur = values.get("call_duration_seconds")
+            if raw_dur is None or raw_dur == "":
+                values["call_duration_seconds"] = None
+            else:
+                values["call_duration_seconds"] = int(raw_dur)
         return values
 
 

@@ -91,7 +91,8 @@ body{background:var(--bg);color:var(--t1);font-family:'Inter',system-ui,sans-ser
 
 /* Funnel */
 .funnel-section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:20px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
-.funnel-title{font-size:.85rem;font-weight:600;color:var(--t1);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.funnel-title{font-size:.85rem;font-weight:600;color:var(--t1);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.funnel-hint{font-size:.72rem;color:var(--t3);line-height:1.45;margin:0 0 14px 24px;max-width:52rem}
 .funnel-title svg{width:16px;height:16px;color:var(--t2)}
 .funnel-bar-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
 .funnel-label{width:130px;font-size:.78rem;font-weight:500;color:var(--t2);text-align:right;flex-shrink:0}
@@ -283,7 +284,7 @@ table.data-table{width:100%;border-collapse:collapse}
         <div class="chart-card">
           <div class="chart-card-header">
             <span class="chart-card-title">Calls by Hour</span>
-            <span class="chart-card-badge green" id="badgeRevenue">—</span>
+            <span class="chart-card-badge green" id="badgePeakHour">—</span>
           </div>
           <div class="mini-chart"><canvas id="chartHours"></canvas></div>
         </div>
@@ -312,7 +313,7 @@ table.data-table{width:100%;border-collapse:collapse}
           <div class="kpi-body">
             <div class="kpi-label">Avg Call Duration</div>
             <div class="kpi-value" id="kpiDuration"><span class="skeleton skeleton-value"></span></div>
-            <div class="kpi-sub">average per call</div>
+            <div class="kpi-sub">avg where duration is logged</div>
           </div>
         </div>
         <div class="kpi-card">
@@ -359,6 +360,7 @@ table.data-table{width:100%;border-collapse:collapse}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
           Call Flow Funnel — Workflow Pipeline
         </div>
+        <p class="funnel-hint">Each step includes only calls that reached it: MC on file → not marked ineligible → lane requested → negotiated (or booked) → booked.</p>
         <div id="funnelContent"></div>
       </div>
 
@@ -588,7 +590,17 @@ const EQUIP_META = {
 
 const AVATAR_COLORS = ['#22C55E','#3B82F6','#8B5CF6','#14B8A6','#F59E0B','#EC4899','#EF4444','#06B6D4'];
 
-function fmtDur(s) { if (!s) return '—'; return Math.floor(s/60)+'m '+Math.round(s%60)+'s'; }
+function fmtDur(s) { if (s == null || s === '' || Number(s) <= 0) return '—'; const n = Number(s); return Math.floor(n/60)+'m '+Math.round(n%60)+'s'; }
+
+function peakHourLabel(cbh) {
+  let bestH = null, bestN = 0;
+  for (let h = 0; h < 24; h++) {
+    const n = cbh[String(h)] || 0;
+    if (n > bestN) { bestN = n; bestH = h; }
+  }
+  if (bestN === 0 || bestH === null) return '—';
+  return 'Peak ' + fmtHour(bestH) + ' · ' + bestN;
+}
 function fmtCur(n) { if (n==null) return '$0'; return '$'+Math.round(n).toLocaleString('en-US'); }
 function fmtPct(v) { return (v||0).toFixed(1)+'%'; }
 function fmtHour(h) { h=parseInt(h); if(h===0)return'12am'; if(h<12)return h+'am'; if(h===12)return'12pm'; return(h-12)+'pm'; }
@@ -628,10 +640,10 @@ function buildVolumeChart(data) {
 function buildHoursChart(data) {
   const cbh = data.calls_by_hour || {};
   const labels=[], values=[];
-  for(let h=7;h<=18;h++){labels.push(fmtHour(h));values.push(cbh[String(h)]||0);}
+  for (let h = 0; h < 24; h++) { labels.push(fmtHour(h)); values.push(cbh[String(h)] || 0); }
   charts.hours = new Chart(document.getElementById('chartHours'),{
     type:'bar', data:{labels,datasets:[{data:values,backgroundColor:'rgba(34,197,94,0.55)',borderRadius:3,borderSkipped:false,barPercentage:.6}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:COLORS.t3,font:{size:10},maxRotation:0},border:{display:false}},y:{display:false}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:COLORS.t3,font:{size:8},maxRotation:90,maxTicksLimit:24},border:{display:false}},y:{display:false,beginAtZero:true,suggestedMax:undefined}}}
   });
 }
 
@@ -960,7 +972,7 @@ async function fetchData() {
     destroyCharts();
 
     document.getElementById('badgeTotalCalls').textContent = data.total_calls+' calls';
-    document.getElementById('badgeRevenue').textContent = fmtCur(data.total_revenue_booked);
+    document.getElementById('badgePeakHour').textContent = peakHourLabel(data.calls_by_hour || {});
 
     document.getElementById('kpiConversion').textContent = fmtPct(data.conversion_rate);
     document.getElementById('kpiRevenue').textContent = fmtCur(data.total_revenue_booked);
