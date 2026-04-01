@@ -295,3 +295,12 @@ async def metrics(api_key: str = Security(verify_api_key)):
 @app.get("/dashboard")
 async def dashboard():
     return FileResponse("dashboard/index.html")
+
+
+@app.get("/dashboard/{filename}")
+async def dashboard_static(filename: str):
+    import pathlib
+    filepath = pathlib.Path("dashboard") / filename
+    if filepath.exists() and filepath.is_file():
+        return FileResponse(str(filepath))
+    raise HTTPException(status_code=404, detail="File not found")
