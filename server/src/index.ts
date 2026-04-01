@@ -10,11 +10,11 @@ const WORKFLOW_ID = process.env.WORKFLOW_ID;
 const _envRaw = (
   process.env.HAPPYROBOT_ENVIRONMENT ||
   process.env.WORKFLOW_ENVIRONMENT ||
-  "development"
+  "production"
 ).toLowerCase();
 const WORKFLOW_ENV = (["development", "staging", "production"].includes(_envRaw)
   ? _envRaw
-  : "development") as "development" | "staging" | "production";
+  : "production") as "development" | "staging" | "production";
 
 if (!API_KEY) {
   console.error("Missing HAPPYROBOT_API_KEY environment variable");
