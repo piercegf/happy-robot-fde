@@ -1,6 +1,12 @@
-# Inbound Carrier Sales — FDE Technical Challenge
+<p align="center">
+  <img src="docs/happyrobot-logo.png" alt="HappyRobot" width="420" />
+</p>
 
-AI-powered inbound carrier sales system for Acme Logistics, built on HappyRobot's voice agent platform with a custom FastAPI backend and real-time operations dashboard.
+<h1 align="center">Inbound Carrier Sales — FDE Technical Challenge</h1>
+
+<p align="center"><strong>HappyRobot</strong> voice platform · FastAPI backend · Live operations dashboard</p>
+
+<p align="center"><em>AI-powered inbound carrier sales for Acme Logistics: MC verification (FMCSA), load search, negotiation, post-call logging, and analytics.</em></p>
 
 ---
 
