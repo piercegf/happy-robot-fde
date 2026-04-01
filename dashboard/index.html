@@ -76,7 +76,8 @@ body{background:var(--bg);color:var(--t1);font-family:'Inter',system-ui,sans-ser
 .chart-card-badge.hour{background:rgba(139,92,246,.12);color:var(--purple)}
 .mini-chart{height:80px;position:relative}
 
-.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:20px}
+@media(max-width:1200px){.kpi-row{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:1000px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:600px){.kpi-row{grid-template-columns:1fr}}
 .kpi-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px;display:flex;align-items:flex-start;gap:14px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
@@ -340,26 +341,6 @@ table.data-table{width:100%;border-collapse:collapse}
             <div class="kpi-label">Avg Negotiation Rounds</div>
             <div class="kpi-value" id="kpiNegRounds"><span class="skeleton skeleton-value"></span></div>
             <div class="kpi-sub">per call</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- KPI Row 2 -->
-      <div class="kpi-row" style="grid-template-columns:repeat(3,1fr)">
-        <div class="kpi-card">
-          <div class="kpi-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
-          <div class="kpi-body">
-            <div class="kpi-label">Revenue / Minute</div>
-            <div class="kpi-value" id="kpiRevMin"><span class="skeleton skeleton-value"></span></div>
-            <div class="kpi-sub">agent efficiency</div>
-          </div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
-          <div class="kpi-body">
-            <div class="kpi-label">Missed Revenue</div>
-            <div class="kpi-value" style="color:var(--red)" id="kpiMissed"><span class="skeleton skeleton-value"></span></div>
-            <div class="kpi-sub">no_agreement call value</div>
           </div>
         </div>
         <div class="kpi-card">
@@ -1061,8 +1042,6 @@ async function fetchData() {
     document.getElementById('kpiDuration').textContent = fmtDur(data.avg_call_duration);
     document.getElementById('kpiNegRounds').textContent = data.avg_negotiation_rounds.toFixed(1);
 
-    document.getElementById('kpiRevMin').textContent = fmtCur(data.revenue_per_minute);
-    document.getElementById('kpiMissed').textContent = fmtCur(data.missed_revenue);
     document.getElementById('kpiNegWin').textContent = fmtPct(data.negotiation_success_rate);
 
     document.getElementById('revBooked').textContent = fmtCur(data.total_revenue_booked);
