@@ -17,9 +17,11 @@ from app.database import (
     init_db,
     get_loads_by_criteria,
     get_load_by_id,
+    get_all_loads,
     log_call,
     get_all_calls,
     get_call_metrics,
+    get_carrier_intelligence,
 )
 
 load_dotenv()
@@ -285,6 +287,18 @@ async def log_call_endpoint(body: CallLogRequest, api_key: str = Security(verify
 async def list_calls(api_key: str = Security(verify_api_key)):
     calls = get_all_calls()
     return {"calls": calls, "count": len(calls)}
+
+
+@app.get("/api/loads")
+async def list_all_loads(api_key: str = Security(verify_api_key)):
+    loads = get_all_loads()
+    return {"loads": loads, "count": len(loads)}
+
+
+@app.get("/api/intelligence/carriers")
+async def carrier_intelligence(api_key: str = Security(verify_api_key)):
+    carriers = get_carrier_intelligence()
+    return {"carriers": carriers, "count": len(carriers)}
 
 
 @app.get("/api/metrics")

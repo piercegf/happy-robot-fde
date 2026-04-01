@@ -187,6 +187,27 @@ table.data-table{width:100%;border-collapse:collapse}
 /* Mini bar helper */
 .mini-bar{height:6px;border-radius:3px;overflow:hidden;min-width:80px;background:var(--border)}
 .mini-bar-fill{height:100%;border-radius:3px}
+
+.view-pane{display:none}
+.view-pane.active{display:block}
+.view-sub{font-size:.85rem;color:var(--t2);margin-bottom:20px;max-width:800px;line-height:1.55}
+.view-sub code{font-family:'JetBrains Mono',monospace;font-size:.78rem;background:var(--row-alt);padding:2px 6px;border-radius:4px}
+
+.conv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.conv-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.conv-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px}
+.conv-card-title{font-weight:600;font-size:.9rem;color:var(--t1)}
+.conv-card-time{font-family:'JetBrains Mono',monospace;font-size:.7rem;color:var(--t3)}
+.conv-dl{display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;font-size:.8rem}
+.conv-dl div{display:flex;flex-direction:column;gap:2px}
+.conv-dl dt{font-size:.65rem;font-weight:600;color:var(--t3);text-transform:uppercase;letter-spacing:.04em}
+.conv-dl dd{color:var(--t1);font-weight:500}
+.conv-dl dd.mono{font-family:'JetBrains Mono',monospace;font-size:.78rem}
+.conv-notes{margin-top:14px;padding-top:14px;border-top:1px solid var(--border);font-size:.8rem;color:var(--t2);line-height:1.45}
+.conv-notes strong{font-size:.65rem;color:var(--t3);text-transform:uppercase;letter-spacing:.04em;display:block;margin-bottom:4px}
+
+.loads-expand{font-size:.72rem;color:var(--blue);cursor:pointer;font-weight:500;background:none;border:none;padding:0}
+.loads-detail-row td{background:var(--row-alt);padding:16px 20px!important;font-size:.78rem;color:var(--t2);line-height:1.5}
 </style>
 </head>
 <body>
@@ -198,31 +219,27 @@ table.data-table{width:100%;border-collapse:collapse}
   </div>
   <div class="sidebar-section">
     <div class="sidebar-section-label">General</div>
-    <a class="sidebar-link active">
+    <a href="#" class="sidebar-link active" data-nav="dashboard">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
       Dashboard
     </a>
   </div>
   <div class="sidebar-section">
     <div class="sidebar-section-label">Operate</div>
-    <a class="sidebar-link">
+    <a href="#" class="sidebar-link" data-nav="conversations">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
       Conversations
     </a>
-    <a class="sidebar-link">
+    <a href="#" class="sidebar-link" data-nav="intelligence">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
       Contact Intelligence
     </a>
   </div>
   <div class="sidebar-section">
     <div class="sidebar-section-label">Resources</div>
-    <a class="sidebar-link">
+    <a href="#" class="sidebar-link" data-nav="knowledge">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
       Knowledge Base
-    </a>
-    <a class="sidebar-link">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      SOP AI
     </a>
   </div>
   <div class="sidebar-spacer"></div>
@@ -231,7 +248,7 @@ table.data-table{width:100%;border-collapse:collapse}
 
 <div class="main">
   <div class="topbar">
-    <span class="topbar-title">Inbound Carrier Sales</span>
+    <span class="topbar-title" id="topbarTitle">Dashboard</span>
     <span class="topbar-divider"></span>
     <span class="topbar-spacer"></span>
     <span class="topbar-timestamp" id="lastUpdated">—</span>
@@ -246,11 +263,13 @@ table.data-table{width:100%;border-collapse:collapse}
       <div class="error-card">
         <h3>Unable to connect to API</h3>
         <p>The dashboard cannot reach the backend. Make sure the server is running and try again.</p>
-        <button class="retry-btn" onclick="fetchData()">Retry Connection</button>
+        <button class="retry-btn" onclick="retryConnection()">Retry Connection</button>
       </div>
     </div>
 
-    <div id="dashboardContent">
+    <div id="mainViews">
+
+    <div id="view-dashboard" class="view-pane active">
 
       <!-- Mini charts -->
       <div class="chart-row">
@@ -459,7 +478,71 @@ table.data-table{width:100%;border-collapse:collapse}
         </table>
       </div>
 
+    </div><!-- /view-dashboard -->
+
+    <div id="view-conversations" class="view-pane">
+      <p class="view-sub">Each card is one voice session: carrier identity, lane request, negotiation outcome, sentiment from the real-time classifier, and agent notes from post-call extraction.</p>
+      <div id="conversationsGrid" class="conv-grid"></div>
     </div>
+
+    <div id="view-intelligence" class="view-pane">
+      <p class="view-sub">Roll-up profiles built from your call history: who calls most often, booking conversion, revenue attributed, typical sentiment, and the lane they ask for most — useful for prioritizing follow-ups and spotting repeat negotiators.</p>
+      <div class="table-card" style="margin-bottom:20px">
+        <div class="table-card-header">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Carrier profiles <span class="count-badge" id="intelCount">(0)</span>
+          </h3>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:32px"></th>
+              <th>Carrier</th>
+              <th>MC #</th>
+              <th class="num">Calls</th>
+              <th class="num">Booked</th>
+              <th style="width:72px;text-align:right">Book %</th>
+              <th class="num-right">Revenue</th>
+              <th class="num-right">Avg neg.</th>
+              <th>Sentiment</th>
+              <th>Top lane</th>
+              <th class="num-right">Last call</th>
+            </tr>
+          </thead>
+          <tbody id="intelBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="view-knowledge" class="view-pane">
+      <p class="view-sub">The <code>POST /api/loads/search</code> load board — same SQLite seed data Marco searches when carriers call. Equipment, rates, miles, and special instructions the agent can pitch.</p>
+      <div class="table-card" style="margin-bottom:20px">
+        <div class="table-card-header">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+            Available loads <span class="count-badge" id="loadsCount">(0)</span>
+          </h3>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th style="width:28px"></th>
+              <th>Load ID</th>
+              <th>Lane</th>
+              <th>Equipment</th>
+              <th class="num-right">Rate</th>
+              <th class="num-right">Miles</th>
+              <th class="num-right">Weight</th>
+              <th>Pickup</th>
+            </tr>
+          </thead>
+          <tbody id="loadsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    </div><!-- /mainViews -->
   </div>
 
   <div class="footer">
@@ -686,8 +769,185 @@ function toggleDetail(btn, idx) {
   btn.classList.toggle('open', !isOpen);
 }
 
-function showError() { document.getElementById('errorState').style.display='block'; document.getElementById('dashboardContent').style.display='none'; }
-function showContent() { document.getElementById('errorState').style.display='none'; document.getElementById('dashboardContent').style.display='block'; }
+function parseCounterOffers(raw) {
+  if (raw == null || raw === '') return [];
+  if (Array.isArray(raw)) return raw;
+  try { const j = JSON.parse(raw); return Array.isArray(j) ? j : []; } catch { return []; }
+}
+
+let currentNav = 'dashboard';
+const TITLES = { dashboard:'Dashboard', conversations:'Conversations', intelligence:'Contact Intelligence', knowledge:'Knowledge Base' };
+
+function showError() {
+  document.getElementById('errorState').style.display = 'block';
+  document.getElementById('mainViews').style.display = 'none';
+}
+function showContent() {
+  document.getElementById('errorState').style.display = 'none';
+  document.getElementById('mainViews').style.display = 'block';
+}
+
+function setActiveNav(name) {
+  document.querySelectorAll('.sidebar-link[data-nav]').forEach(a => {
+    a.classList.toggle('active', a.getAttribute('data-nav') === name);
+  });
+  document.querySelectorAll('.view-pane').forEach(p => p.classList.remove('active'));
+  const pane = document.getElementById('view-'+name);
+  if (pane) pane.classList.add('active');
+  currentNav = name;
+  document.getElementById('topbarTitle').textContent = TITLES[name] || 'Dashboard';
+}
+
+function navigate(name, e) {
+  if (e) e.preventDefault();
+  setActiveNav(name);
+  if (name === 'conversations') fetchConversations();
+  if (name === 'intelligence') fetchIntelligence();
+  if (name === 'knowledge') fetchLoads();
+}
+
+document.querySelectorAll('.sidebar-link[data-nav]').forEach(a => {
+  a.addEventListener('click', ev => navigate(a.getAttribute('data-nav'), ev));
+});
+
+function buildConversationCards(calls) {
+  const el = document.getElementById('conversationsGrid');
+  if (!calls.length) {
+    el.innerHTML = '<p style="color:var(--t3);padding:24px">No conversations yet.</p>';
+    return;
+  }
+  el.innerHTML = calls.map(c => {
+    const lane = (c.requested_origin && c.requested_destination) ? c.requested_origin+' → '+c.requested_destination : '—';
+    const ts = c.timestamp ? new Date(c.timestamp).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+    const co = parseCounterOffers(c.counter_offers);
+    const coStr = co.length ? co.map(x => '$'+Number(x).toLocaleString('en-US')).join(' → ') : '—';
+    const color = AVATAR_COLORS[Math.abs((c.carrier_name||'').charCodeAt(0)-65)%AVATAR_COLORS.length];
+    const ini = (c.carrier_name||'??').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+    return `<div class="conv-card">
+      <div class="conv-card-top">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="carrier-avatar" style="background:${color}">${ini}</div>
+          <div>
+            <div class="conv-card-title">${c.carrier_name||'Unknown'}</div>
+            <div class="conv-card-time">${ts}</div>
+          </div>
+        </div>
+        <span class="outcome-pill ${c.outcome||''}">${outcomeLabel(c.outcome)}</span>
+      </div>
+      <dl class="conv-dl">
+        <div><dt>MC number</dt><dd class="mono">${c.carrier_mc||'—'}</dd></div>
+        <div><dt>Sentiment</dt><dd><span class="sentiment-pill ${c.sentiment||''}">${c.sentiment ? c.sentiment.charAt(0).toUpperCase()+c.sentiment.slice(1) : '—'}</span></dd></div>
+        <div><dt>Lane</dt><dd>${lane}</dd></div>
+        <div><dt>Equipment</dt><dd>${c.equipment_type||'—'}</dd></div>
+        <div><dt>Posted rate</dt><dd class="mono">${c.loadboard_rate!=null ? fmtCur(c.loadboard_rate) : '—'}</dd></div>
+        <div><dt>Agreed rate</dt><dd class="mono" style="color:var(--green)">${c.agreed_rate!=null ? fmtCur(c.agreed_rate) : '—'}</dd></div>
+        <div><dt>Negotiation rounds</dt><dd class="mono">${c.negotiation_rounds ?? 0}</dd></div>
+        <div><dt>Duration</dt><dd class="mono">${fmtDur(c.call_duration_seconds)}</dd></div>
+        <div><dt>Load matched</dt><dd class="mono">${c.load_id_matched||'—'}</dd></div>
+        <div style="grid-column:1/-1"><dt>Counter-offer trail</dt><dd class="mono">${coStr}</dd></div>
+      </dl>
+      <div class="conv-notes"><strong>Notes / summary</strong>${c.notes ? c.notes : '—'}</div>
+    </div>`;
+  }).join('');
+}
+
+async function fetchConversations() {
+  try {
+    const resp = await fetch(API_BASE+'/api/calls',{headers:{'X-API-Key':API_KEY}});
+    if (!resp.ok) throw new Error(resp.status);
+    const j = await resp.json();
+    buildConversationCards(j.calls||[]);
+  } catch (e) { console.error(e); document.getElementById('conversationsGrid').innerHTML = '<p style="color:var(--red);padding:24px">Could not load conversations.</p>'; }
+}
+
+function buildIntelTable(carriers) {
+  const tbody = document.getElementById('intelBody');
+  document.getElementById('intelCount').textContent = '('+(carriers.length)+')';
+  if (!carriers.length) {
+    tbody.innerHTML = '<tr><td colspan="11" style="text-align:center;color:var(--t3);padding:24px">No carrier data yet.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = carriers.map((r,i) => {
+    const cls = pctClass(r.booking_rate_pct);
+    const color = AVATAR_COLORS[i%AVATAR_COLORS.length];
+    const ini = (r.carrier_name||'??').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();
+    const sent = r.dominant_sentiment ? r.dominant_sentiment.charAt(0).toUpperCase()+r.dominant_sentiment.slice(1) : '—';
+    const last = r.last_call_at ? new Date(r.last_call_at).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+    const lane = r.top_lane || '—';
+    return `<tr>
+      <td><div class="carrier-avatar" style="background:${color};width:28px;height:28px;font-size:.6rem">${ini}</div></td>
+      <td style="font-weight:500">${r.carrier_name}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:.78rem;color:var(--t2)">${r.carrier_mc||'—'}</td>
+      <td class="num" style="font-weight:600">${r.total_calls}</td>
+      <td class="num" style="color:var(--green);font-weight:600">${r.booked_calls}</td>
+      <td style="text-align:right"><span class="pct-badge ${cls}">${r.booking_rate_pct.toFixed(1)}%</span></td>
+      <td class="num-right">${fmtCur(r.revenue_booked)}</td>
+      <td class="num-right">${r.avg_negotiation_rounds.toFixed(1)}</td>
+      <td><span class="sentiment-pill ${r.dominant_sentiment||''}">${sent}</span></td>
+      <td style="font-size:.78rem;color:var(--t2);max-width:180px">${lane.length>40?lane.slice(0,37)+'…':lane}</td>
+      <td class="num-right" style="font-family:'JetBrains Mono',monospace;font-size:.72rem;color:var(--t2)">${last}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function fetchIntelligence() {
+  try {
+    const resp = await fetch(API_BASE+'/api/intelligence/carriers',{headers:{'X-API-Key':API_KEY}});
+    if (!resp.ok) throw new Error(resp.status);
+    const j = await resp.json();
+    buildIntelTable(j.carriers||[]);
+  } catch (e) { console.error(e); document.getElementById('intelBody').innerHTML = '<tr><td colspan="11" style="text-align:center;color:var(--red);padding:24px">Could not load intelligence.</td></tr>'; }
+}
+
+function toggleLoadRow(btn, idx) {
+  const row = document.getElementById('load-detail-'+idx);
+  const open = row.style.display !== 'none';
+  row.style.display = open ? 'none' : 'table-row';
+  btn.classList.toggle('open', !open);
+}
+
+function buildLoadsTable(loads) {
+  const tbody = document.getElementById('loadsBody');
+  document.getElementById('loadsCount').textContent = '('+loads.length+')';
+  if (!loads.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--t3);padding:24px">No loads in database.</td></tr>';
+    return;
+  }
+  let html = '';
+  loads.forEach((L, idx) => {
+    const lane = (L.origin||'')+' → '+(L.destination||'');
+    html += `<tr>
+      <td><button class="expand-btn" onclick="toggleLoadRow(this,${idx})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button></td>
+      <td style="font-family:'JetBrains Mono',monospace;font-weight:600;font-size:.8rem">${L.load_id}</td>
+      <td style="font-size:.8rem">${lane}</td>
+      <td>${L.equipment_type||'—'}</td>
+      <td class="num-right">${fmtCur(L.loadboard_rate)}</td>
+      <td class="num-right">${L.miles!=null?L.miles.toLocaleString():'—'}</td>
+      <td class="num-right">${L.weight!=null?L.weight.toLocaleString()+' lbs':'—'}</td>
+      <td style="font-size:.75rem;color:var(--t2)">${L.pickup_datetime||'—'}</td>
+    </tr>
+    <tr class="loads-detail-row" id="load-detail-${idx}" style="display:none"><td colspan="8">
+      <strong style="display:block;margin-bottom:8px;color:var(--t1);font-size:.8rem">Commodity &amp; handling</strong>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px">
+        <div><span style="font-size:.65rem;font-weight:600;color:var(--t3);text-transform:uppercase">Commodity</span><br>${L.commodity_type||'—'}</div>
+        <div><span style="font-size:.65rem;font-weight:600;color:var(--t3);text-transform:uppercase">Pieces</span><br>${L.num_of_pieces!=null?L.num_of_pieces:'—'}</div>
+        <div><span style="font-size:.65rem;font-weight:600;color:var(--t3);text-transform:uppercase">Dimensions</span><br>${L.dimensions||'—'}</div>
+        <div><span style="font-size:.65rem;font-weight:600;color:var(--t3);text-transform:uppercase">Delivery</span><br>${L.delivery_datetime||'—'}</div>
+      </div>
+      <p style="margin-top:12px"><span style="font-size:.65rem;font-weight:600;color:var(--t3);text-transform:uppercase">Notes</span><br>${L.notes||'—'}</p>
+    </td></tr>`;
+  });
+  tbody.innerHTML = html;
+}
+
+async function fetchLoads() {
+  try {
+    const resp = await fetch(API_BASE+'/api/loads',{headers:{'X-API-Key':API_KEY}});
+    if (!resp.ok) throw new Error(resp.status);
+    const j = await resp.json();
+    buildLoadsTable(j.loads||[]);
+  } catch (e) { console.error(e); document.getElementById('loadsBody').innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--red);padding:24px">Could not load knowledge base.</td></tr>'; }
+}
 
 async function fetchData() {
   const btn = document.getElementById('refreshBtn');
@@ -737,9 +997,29 @@ async function fetchData() {
   }
 }
 
+async function refreshOtherViews() {
+  const btn = document.getElementById('refreshBtn');
+  btn.classList.add('spinning');
+  try {
+    if (currentNav === 'conversations') await fetchConversations();
+    else if (currentNav === 'intelligence') await fetchIntelligence();
+    else if (currentNav === 'knowledge') await fetchLoads();
+  } finally {
+    btn.classList.remove('spinning');
+  }
+}
+
+function retryConnection() {
+  setActiveNav('dashboard');
+  fetchData();
+}
+
 fetchData();
-setInterval(fetchData, 30000);
-document.getElementById('refreshBtn').addEventListener('click', fetchData);
+setInterval(() => { if (currentNav === 'dashboard') fetchData(); }, 30000);
+document.getElementById('refreshBtn').addEventListener('click', () => {
+  if (currentNav === 'dashboard') fetchData();
+  else refreshOtherViews();
+});
 </script>
 </body>
 </html>

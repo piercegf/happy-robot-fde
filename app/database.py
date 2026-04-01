@@ -1,6 +1,7 @@
 import sqlite3
 import os
 import json
+from collections import defaultdict
 
 DB_PATH = os.getenv("DB_PATH", "data/carrier_sales.db")
 
@@ -230,6 +231,102 @@ def get_load_by_id(load_id):
     row = cur.fetchone()
     conn.close()
     return dict(row) if row else None
+
+
+def get_all_loads():
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM loads ORDER BY load_id")
+    rows = [dict(r) for r in cur.fetchall()]
+    conn.close()
+    return rows
+
+
+def get_carrier_intelligence():
+    """Aggregate per-carrier profile from call history (Contact Intelligence)."""
+    calls = get_all_calls()
+    if not calls:
+        return []
+
+    booked_vals = ("booked", "load_booked")
+
+    def is_booked(o):
+        return o in booked_vals
+
+    by_key = defaultdict(lambda: {
+        "carrier_name": None,
+        "carrier_mc": None,
+        "total_calls": 0,
+        "booked_calls": 0,
+        "revenue_booked": 0.0,
+        "negotiation_sum": 0,
+        "duration_sum": 0,
+        "duration_n": 0,
+        "sentiment_counts": defaultdict(int),
+        "lane_counts": defaultdict(int),
+        "last_timestamp": None,
+    })
+
+    for c in calls:
+        name = c.get("carrier_name") or "Unknown"
+        mc = c.get("carrier_mc") or ""
+        key = (name, mc)
+        agg = by_key[key]
+        agg["carrier_name"] = name
+        agg["carrier_mc"] = mc
+        agg["total_calls"] += 1
+        out = c.get("outcome")
+        if is_booked(out):
+            agg["booked_calls"] += 1
+            agg["revenue_booked"] += float(c.get("agreed_rate") or 0)
+        agg["negotiation_sum"] += int(c.get("negotiation_rounds") or 0)
+        dur = c.get("call_duration_seconds")
+        if dur is not None:
+            agg["duration_sum"] += int(dur)
+            agg["duration_n"] += 1
+        sent = c.get("sentiment")
+        if sent:
+            agg["sentiment_counts"][sent] += 1
+        o0, d0 = c.get("requested_origin"), c.get("requested_destination")
+        if o0 and d0:
+            lane = f"{o0} → {d0}"
+            agg["lane_counts"][lane] += 1
+        ts = c.get("timestamp")
+        if ts and (agg["last_timestamp"] is None or ts > agg["last_timestamp"]):
+            agg["last_timestamp"] = ts
+
+    result = []
+    for agg in by_key.values():
+        n = agg["total_calls"]
+        booked = agg["booked_calls"]
+        rate = round((booked / n) * 100, 1) if n else 0
+        avg_neg = round(agg["negotiation_sum"] / n, 1) if n else 0
+        dn = agg["duration_n"]
+        avg_dur = round(agg["duration_sum"] / dn, 0) if dn else 0
+        sc = agg["sentiment_counts"]
+        dominant = None
+        if sc:
+            dominant = max(sc.keys(), key=lambda k: sc[k])
+        lanes = agg["lane_counts"]
+        top_lane = None
+        if lanes:
+            top_lane = max(lanes.keys(), key=lambda k: lanes[k])
+        result.append({
+            "carrier_name": agg["carrier_name"],
+            "carrier_mc": agg["carrier_mc"],
+            "total_calls": n,
+            "booked_calls": booked,
+            "booking_rate_pct": rate,
+            "revenue_booked": round(agg["revenue_booked"], 2),
+            "avg_negotiation_rounds": avg_neg,
+            "avg_call_duration_seconds": int(avg_dur),
+            "dominant_sentiment": dominant,
+            "top_lane": top_lane,
+            "last_call_at": agg["last_timestamp"],
+        })
+
+    result.sort(key=lambda x: x["total_calls"], reverse=True)
+    return result
 
 
 def log_call(call_data: dict):
