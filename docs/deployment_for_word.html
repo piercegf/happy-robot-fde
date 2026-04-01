@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Deployment — Access &amp; Reproduction</title>
+<style>
+  body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; line-height: 1.35; color: #111; max-width: 7in; margin: 1in auto; }
+  h1 { font-size: 18pt; font-weight: bold; margin: 18pt 0 12pt 0; }
+  h2 { font-size: 14pt; font-weight: bold; margin: 16pt 0 8pt 0; }
+  h3 { font-size: 12pt; font-weight: bold; margin: 12pt 0 6pt 0; }
+  p { margin: 0 0 10pt 0; }
+  ul, ol { margin: 0 0 10pt 1.2em; }
+  li { margin-bottom: 4pt; }
+  table { border-collapse: collapse; width: 100%; margin: 10pt 0 14pt 0; }
+  th, td { border: 1px solid #333; padding: 6pt 8pt; vertical-align: top; text-align: left; }
+  th { background: #f0f0f0; font-weight: bold; }
+  pre { font-family: Consolas, monospace; font-size: 9pt; background: #f5f5f5; border: 1px solid #ccc; padding: 10pt; margin: 10pt 0; white-space: pre-wrap; }
+  .note { font-style: italic; color: #444; margin-top: 8pt; }
+</style>
+</head>
+<body>
+
+<h1>Deployment: Access &amp; Reproduction</h1>
+<p class="note">Acme Logistics inbound carrier sales — FastAPI backend &amp; operations dashboard. Replace <strong>&lt;your-railway-host&gt;</strong> with your live hostname (no <code>https://</code> in the placeholder — the full URL is shown in each row).</p>
+
+<h2>1. How to access the deployment</h2>
+
+<table>
+  <tr>
+    <th style="width:22%">Resource</th>
+    <th>How to access</th>
+  </tr>
+  <tr>
+    <td><strong>Operations dashboard</strong></td>
+    <td>Open <strong>https://&lt;your-railway-host&gt;/dashboard</strong> in a browser. The server injects the API key into the page. Do not open a static HTML file from disk.</td>
+  </tr>
+  <tr>
+    <td><strong>API root</strong></td>
+    <td><strong>https://&lt;your-railway-host&gt;/</strong> redirects to the dashboard.</td>
+  </tr>
+  <tr>
+    <td><strong>Health check</strong> (no API key)</td>
+    <td><strong>GET https://&lt;your-railway-host&gt;/health</strong> — returns JSON: status, timestamp, version.</td>
+  </tr>
+  <tr>
+    <td><strong>All other API routes</strong></td>
+    <td>Send header <strong>X-API-Key: &lt;your API_KEY&gt;</strong>. Examples: <code>GET /api/metrics</code>, <code>POST /api/loads/search</code>, <code>POST /api/calls/log</code>.</td>
+  </tr>
+</table>
+
+<p><strong>HTTPS:</strong> Railway terminates TLS at the edge; use <code>https://</code> for all production URLs.</p>
+
+<p><strong>Credentials:</strong> Set <code>API_KEY</code> in Railway (or <code>.env</code> locally). Anyone who can load <code>/dashboard</code> can see the injected key in browser tools — treat the dashboard URL as an <strong>admin</strong> surface and use a strong, rotatable key.</p>
+
+<p><strong>HappyRobot:</strong> Configure tool and webhook base URLs in the HappyRobot workflow to <strong>https://&lt;your-railway-host&gt;</strong> so carrier verification, load search, negotiation, and call logging reach this deployment.</p>
+
+<h2>2. How to reproduce the deployment</h2>
+
+<p>This repository does <strong>not</strong> use Terraform. Use one of the following manual paths.</p>
+
+<h3>Option A — Railway (production-like)</h3>
+<ol>
+  <li><strong>Prerequisites:</strong> GitHub account, Railway account, access to the repository.</li>
+  <li><strong>Create the service:</strong> Railway → New Project → Deploy from GitHub → select the repo. Railway uses <code>railway.json</code> and the <code>Dockerfile</code> to build.</li>
+  <li><strong>Environment variables</strong> (Railway → your service → Variables):</li>
+</ol>
+
+<table>
+  <tr>
+    <th>Variable</th>
+    <th>Required</th>
+    <th>Purpose</th>
+  </tr>
+  <tr>
+    <td><code>API_KEY</code></td>
+    <td>Yes</td>
+    <td>Authenticates API requests; value is injected into <code>/dashboard</code>.</td>
+  </tr>
+  <tr>
+    <td><code>PORT</code></td>
+    <td>No</td>
+    <td>Railway sets this automatically; the app listens on <code>${PORT:-8000}</code>.</td>
+  </tr>
+  <tr>
+    <td><code>FMCSA_WEBKEY</code></td>
+    <td>No</td>
+    <td>Enables the primary FMCSA mobile API; optional fallback applies if unset.</td>
+  </tr>
+  <tr>
+    <td><code>DB_PATH</code></td>
+    <td>No</td>
+    <td>Default <code>data/carrier_sales.db</code>. Point to a volume path if you attach persistent storage.</td>
+  </tr>
+</table>
+
+<ol start="4">
+  <li><strong>Persistence (optional):</strong> Mount a volume at <code>/app/data</code> (or set <code>DB_PATH</code> to match) so SQLite survives redeploys.</li>
+  <li><strong>Deploy:</strong> Push to the connected branch; Railway rebuilds and deploys. Open the generated public URL + <code>/dashboard</code>.</li>
+</ol>
+
+<p><strong>Start command</strong> (from <code>railway.json</code>): <code>uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}</code>, with automatic restarts on failure (up to 10 retries).</p>
+
+<h3>Option B — Docker Compose (local or any Docker host)</h3>
+<p>From the repository root:</p>
+<pre>cp .env.example .env
+# Edit .env: set API_KEY and optionally FMCSA_WEBKEY
+mkdir -p data
+docker compose up --build</pre>
+<p>Then open <strong>http://localhost:8000/dashboard</strong>. The compose file mounts <code>./data</code> so the SQLite database persists on the host.</p>
+
+<h3>Option C — Local Python (development)</h3>
+<pre>python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+mkdir -p data
+uvicorn app.main:app --reload --port 8000</pre>
+<p>On Windows, use <code>venv\Scripts\activate</code> instead of <code>source venv/bin/activate</code>. Use <strong>http://localhost:8000/dashboard</strong> and send <code>X-API-Key</code> on API requests.</p>
+
+<h3>Optional — Web voice test client (QA only)</h3>
+<p>For browser test calls: run the <code>server/</code> token service (port 3001) and <code>client/</code> (Vite) as described in the repository README. Production traffic uses the HappyRobot web-call trigger; this stack is for local testing only.</p>
+
+<h2>3. Container summary</h2>
+<ul>
+  <li><strong>Base image:</strong> <code>python:3.12-slim</code>; dependencies from <code>requirements.txt</code>; application code in <code>/app</code>.</li>
+  <li><strong>Runtime:</strong> Single Uvicorn process (appropriate for demo scale; horizontal scaling would add replicas behind the platform load balancer).</li>
+</ul>
+
+</body>
+</html>
