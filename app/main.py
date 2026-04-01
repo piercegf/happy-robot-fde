@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.security import APIKeyHeader
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 from app.database import (
     init_db,
@@ -66,6 +66,16 @@ class NegotiateRequest(BaseModel):
     round_number: int
 
 
+def _coerce_float(v):
+    if v is None or v == "":
+        return None
+    return float(v)
+
+def _coerce_int(v, default=0):
+    if v is None or v == "":
+        return default
+    return int(v)
+
 class CallLogRequest(BaseModel):
     call_id: Optional[str] = None
     timestamp: Optional[str] = None
@@ -83,6 +93,16 @@ class CallLogRequest(BaseModel):
     call_duration_seconds: Optional[int] = None
     counter_offers: Optional[list] = None
     notes: Optional[str] = None
+
+    @model_validator(mode="before")
+    @classmethod
+    def coerce_numeric_fields(cls, values):
+        if isinstance(values, dict):
+            values["loadboard_rate"] = _coerce_float(values.get("loadboard_rate"))
+            values["agreed_rate"] = _coerce_float(values.get("agreed_rate"))
+            values["negotiation_rounds"] = _coerce_int(values.get("negotiation_rounds"), 0)
+            values["call_duration_seconds"] = _coerce_int(values.get("call_duration_seconds"))
+        return values
 
 
 # ---------------------------------------------------------------------------
