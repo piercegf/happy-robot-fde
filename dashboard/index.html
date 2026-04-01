@@ -11,13 +11,13 @@
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#F4F5F7;
+  --bg:#F7F7F8;
   --card:#FFFFFF;
-  --border:#E5E7EB;
-  --sidebar:#111318;
-  --sidebar-hover:#1E2028;
-  --sidebar-active:#2A2D38;
-  --accent:#F97316;
+  --border:#E8E8EC;
+  --sidebar:#0F0F12;
+  --sidebar-hover:#1A1A21;
+  --sidebar-active:#22C55E;
+  --accent:#22C55E;
   --green:#22C55E;
   --blue:#3B82F6;
   --red:#EF4444;
@@ -33,18 +33,18 @@ body{background:var(--bg);color:var(--t1);font-family:'Inter',system-ui,sans-ser
 
 /* Sidebar */
 .sidebar{width:220px;background:var(--sidebar);color:#fff;display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto}
-.sidebar-logo{padding:20px 20px 24px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sidebar-logo{padding:20px 20px 28px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.06)}
 .sidebar-logo svg{width:28px;height:28px;flex-shrink:0}
 .sidebar-logo span{font-weight:700;font-size:.95rem;letter-spacing:-.01em}
-.sidebar-section{padding:16px 12px 4px}
-.sidebar-section-label{font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);padding:0 8px;margin-bottom:4px}
-.sidebar-link{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;color:rgba(255,255,255,.6);font-size:.82rem;font-weight:500;text-decoration:none;cursor:pointer;transition:all .15s;margin-bottom:1px}
+.sidebar-section{padding:20px 12px 4px}
+.sidebar-section-label{font-size:.65rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.3);padding:0 8px;margin-bottom:6px}
+.sidebar-link{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;color:rgba(255,255,255,.55);font-size:.82rem;font-weight:500;text-decoration:none;cursor:pointer;transition:all .15s;margin-bottom:2px}
 .sidebar-link:hover{background:var(--sidebar-hover);color:rgba(255,255,255,.85)}
-.sidebar-link.active{background:var(--sidebar-active);color:#fff}
-.sidebar-link svg{width:18px;height:18px;opacity:.55;flex-shrink:0}
-.sidebar-link.active svg{opacity:.9}
+.sidebar-link.active{background:rgba(34,197,94,.15);color:#22C55E}
+.sidebar-link svg{width:18px;height:18px;opacity:.45;flex-shrink:0}
+.sidebar-link.active svg{opacity:1;color:#22C55E}
 .sidebar-spacer{flex:1}
-.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);font-size:.68rem;color:rgba(255,255,255,.25);text-align:center}
+.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,.06);font-size:.68rem;color:rgba(255,255,255,.2);text-align:center}
 
 /* Main Content */
 .main{margin-left:220px;flex:1;min-height:100vh;display:flex;flex-direction:column}
@@ -54,8 +54,8 @@ body{background:var(--bg);color:var(--t1);font-family:'Inter',system-ui,sans-ser
 }
 
 /* Top Bar */
-.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:16px 32px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:50}
-.topbar-title{font-size:1.05rem;font-weight:600;color:var(--t1)}
+.topbar{background:var(--card);border-bottom:1px solid var(--border);padding:14px 32px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:50}
+.topbar-title{font-size:1rem;font-weight:600;color:var(--t1);letter-spacing:-.01em}
 .topbar-divider{width:1px;height:20px;background:var(--border)}
 .topbar-date{display:flex;align-items:center;gap:6px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:6px 12px;font-size:.8rem;color:var(--t2);font-weight:500}
 .topbar-date svg{width:14px;height:14px;color:var(--t3)}
@@ -75,12 +75,12 @@ body{background:var(--bg);color:var(--t1);font-family:'Inter',system-ui,sans-ser
 /* Chart Row (small charts at top) */
 .chart-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
 @media(max-width:800px){.chart-row{grid-template-columns:1fr}}
-.chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 20px}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px 20px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
 .chart-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .chart-card-title{font-size:.82rem;font-weight:600;color:var(--t1)}
 .chart-card-badge{font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:600;padding:3px 8px;border-radius:6px}
 .chart-card-badge.green{background:rgba(34,197,94,.1);color:var(--green)}
-.chart-card-badge.orange{background:rgba(249,115,22,.1);color:var(--accent)}
+.chart-card-badge.orange{background:rgba(34,197,94,.08);color:var(--green)}
 .chart-card-badge.blue{background:rgba(59,130,246,.1);color:var(--blue)}
 .mini-chart{height:80px;position:relative}
 
@@ -88,7 +88,7 @@ body{background:var(--bg);color:var(--t1);font-family:'Inter',system-ui,sans-ser
 .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
 @media(max-width:1000px){.kpi-row{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:600px){.kpi-row{grid-template-columns:1fr}}
-.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:18px 20px;display:flex;align-items:flex-start;gap:14px}
+.kpi-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 22px;display:flex;align-items:flex-start;gap:14px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
 .kpi-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .kpi-icon.green{background:rgba(34,197,94,.1)}
 .kpi-icon.green svg{color:var(--green)}
@@ -114,7 +114,7 @@ body{background:var(--bg);color:var(--t1);font-family:'Inter',system-ui,sans-ser
 /* Tables panel */
 .tables-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
 @media(max-width:900px){.tables-row{grid-template-columns:1fr}}
-.table-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.table-card{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.03)}
 .table-card-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border)}
 .table-card-header h3{font-size:.85rem;font-weight:600;color:var(--t1);display:flex;align-items:center;gap:8px}
 .table-card-header h3 svg{width:16px;height:16px;color:var(--t2)}
@@ -134,7 +134,7 @@ table.data-table{width:100%;border-collapse:collapse}
 /* Status dot */
 .status-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:8px;flex-shrink:0;position:relative;top:0px}
 .status-dot.green{background:var(--green)}
-.status-dot.orange{background:var(--accent)}
+.status-dot.orange{background:#F59E0B}
 .status-dot.red{background:var(--red)}
 .status-dot.gray{background:var(--t3)}
 .status-dot.blue{background:var(--blue)}
@@ -142,7 +142,7 @@ table.data-table{width:100%;border-collapse:collapse}
 /* Percentage badge */
 .pct-badge{font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:600;padding:3px 10px;border-radius:6px;display:inline-block;min-width:48px;text-align:center}
 .pct-badge.green{background:rgba(34,197,94,.1);color:#16A34A}
-.pct-badge.orange{background:rgba(249,115,22,.12);color:#EA580C}
+.pct-badge.orange{background:rgba(245,158,11,.12);color:#D97706}
 .pct-badge.red{background:rgba(239,68,68,.1);color:#DC2626}
 .pct-badge.gray{background:rgba(107,114,128,.1);color:var(--t2)}
 
@@ -152,13 +152,13 @@ table.data-table{width:100%;border-collapse:collapse}
 .carrier-name{font-weight:500}
 
 /* Revenue bar */
-.revenue-section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:20px}
+.revenue-section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:20px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
 .revenue-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:32px;align-items:center}
 @media(max-width:700px){.revenue-grid{grid-template-columns:1fr;gap:16px}}
 .rev-label{font-size:.72rem;font-weight:600;color:var(--t2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
 .rev-value{font-family:'JetBrains Mono',monospace;font-size:1.5rem;font-weight:600;line-height:1.2}
 .rev-value.green{color:#16A34A}
-.rev-value.orange{color:var(--accent)}
+.rev-value.orange{color:var(--t1)}
 .rev-bar-track{height:6px;background:var(--border);border-radius:3px;margin-top:10px;overflow:hidden}
 .rev-bar-fill{height:100%;border-radius:3px;transition:width .8s ease;background:var(--green)}
 .rev-sub{font-size:.72rem;color:var(--t3);margin-top:6px}
@@ -190,15 +190,39 @@ table.data-table{width:100%;border-collapse:collapse}
 <!-- Sidebar -->
 <aside class="sidebar">
   <div class="sidebar-logo">
-    <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#F97316"/><path d="M8 22V10l5 6 5-6v12" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 14l4-4v12" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <svg viewBox="0 0 32 32" fill="none"><rect width="32" height="32" rx="8" fill="#22C55E"/><path d="M7 10l5 12 4-8 4 8 5-12" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
     <span>Acme Logistics</span>
   </div>
 
   <div class="sidebar-section">
-    <div class="sidebar-section-label">Analytics</div>
+    <div class="sidebar-section-label">General</div>
     <a class="sidebar-link active">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
       Dashboard
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Operate</div>
+    <a class="sidebar-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+      Conversations
+    </a>
+    <a class="sidebar-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Contact Intelligence
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Resources</div>
+    <a class="sidebar-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+      Knowledge Base
+    </a>
+    <a class="sidebar-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      SOP AI
     </a>
   </div>
 
@@ -267,7 +291,7 @@ table.data-table{width:100%;border-collapse:collapse}
           </div>
         </div>
         <div class="kpi-card">
-          <div class="kpi-icon orange">
+          <div class="kpi-icon green">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           </div>
           <div class="kpi-body">
@@ -498,8 +522,8 @@ const API_KEY = 'acme-logistics-2026';
 const API_BASE = window.location.origin;
 
 const COLORS = {
-  accent:'#F97316', green:'#22C55E', blue:'#3B82F6', red:'#EF4444', purple:'#8B5CF6',
-  t1:'#111827', t2:'#6B7280', t3:'#9CA3AF', border:'#E5E7EB', bg:'#F4F5F7',
+  accent:'#22C55E', green:'#22C55E', blue:'#3B82F6', red:'#EF4444', purple:'#8B5CF6',
+  t1:'#111827', t2:'#6B7280', t3:'#9CA3AF', border:'#E8E8EC', bg:'#F7F7F8',
 };
 
 const OUTCOME_META = {
@@ -519,10 +543,10 @@ const SENTIMENT_META = {
 const EQUIP_META = {
   'Dry Van': { dot:'blue',   color:'#3B82F6' },
   'Reefer':  { dot:'green',  color:'#22C55E' },
-  'Flatbed': { dot:'orange', color:'#F97316' },
+  'Flatbed': { dot:'orange', color:'#F59E0B' },
 };
 
-const AVATAR_COLORS = ['#F97316','#3B82F6','#22C55E','#8B5CF6','#EF4444','#EC4899','#14B8A6','#F59E0B'];
+const AVATAR_COLORS = ['#22C55E','#3B82F6','#8B5CF6','#14B8A6','#F59E0B','#EC4899','#EF4444','#06B6D4'];
 
 function formatDuration(s) {
   if (!s) return '0m 0s';
