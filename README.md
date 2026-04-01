@@ -24,24 +24,28 @@
 └─────────────────────┼────────────────┼─────────────┘
                       │                │
              ┌────────▼────────────────▼──────┐
-             │      FastAPI Backend (Railway)  │
-             │  /api/carrier/verify → FMCSA   │
+             │   FastAPI API (e.g. Railway)    │
+             │  /api/carrier/verify → FMCSA    │
              │  /api/loads/search → SQLite     │
-             │  /api/negotiate → Logic Engine  │
-             │  /api/calls/log → Call Logger   │
-             │  /api/metrics → Dashboard Data  │
-             │  /dashboard → Operations UI     │
+             │  /api/negotiate → rate engine   │
+             │  /api/calls/log → call logger   │
+             │  /api/metrics → dashboard data  │
+             │  /api/intelligence/carriers     │
+             │  /dashboard → ops UI (key inj.) │
              └────────────────────────────────┘
 ```
+
+*Local web voice testing (optional):* run `server/` (token API, port 3001) and `client/` (Vite); see **Optional: local web voice client** below.
 
 ## Tech Stack
 
 - **Runtime:** Python 3.12
 - **Framework:** FastAPI + Uvicorn
-- **Database:** SQLite
-- **Dashboard:** Chart.js, Inter & JetBrains Mono
-- **Deployment:** Docker, Railway
-- **External APIs:** FMCSA Carrier Verification
+- **Database:** SQLite (`DB_PATH`, default `data/carrier_sales.db`)
+- **Dashboard:** Static HTML + Chart.js (Inter & JetBrains Mono); `API_KEY` injected when serving `/dashboard`
+- **Voice test UI (local):** React + Vite (`client/`), token helper Express (`server/`, port 3001) + HappyRobot SDK
+- **Deployment:** Docker / Docker Compose, Railway
+- **External APIs:** FMCSA (official + VerifyCarrier fallback)
 
 ---
 
@@ -50,7 +54,7 @@
 ```bash
 # Clone the repository
 git clone https://github.com/piercegf/happy-robot-fde.git
-cd happyrobot-fde
+cd happy-robot-fde
 
 # Create virtual environment
 python -m venv venv
@@ -70,7 +74,14 @@ mkdir -p data
 uvicorn app.main:app --reload --port 8000
 ```
 
-The API is now running at `http://localhost:8000` and the dashboard at `http://localhost:8000/dashboard`.
+The API is now running at `http://localhost:8000` and the dashboard at `http://localhost:8000/dashboard` (always use this URL so the API key is injected—do not open `dashboard/index.html` as a file).
+
+### Optional: local web voice client
+
+To place test calls from the browser against your HappyRobot workflow (separate from Railway):
+
+1. **`server/`** — copy `server/.env.example` → `server/.env`, set `HAPPYROBOT_API_KEY`, `WORKFLOW_ID`, and `HAPPYROBOT_ENVIRONMENT` (`production` if the workflow is only published to prod). Run `npm install && npm run dev` (default port **3001**).
+2. **`client/`** — `npm install && npm run dev`. Vite proxies `/api/voice` to the token server. Use the printed localhost URL (5173, 5174, …).
 
 ### Seed Test Data
 
@@ -96,7 +107,7 @@ The service starts on port 8000 with a persistent `data/` volume for the SQLite 
 
 1. Push this repository to GitHub
 2. Connect the repo to [Railway](https://railway.app)
-3. Set environment variables: `API_KEY`, `FMCSA_WEBKEY`
+3. Set environment variables: `API_KEY`, `FMCSA_WEBKEY` (optional), and optionally `DB_PATH` if you use a volume path
 4. Railway auto-detects the Dockerfile and deploys
 
 The `railway.json` config handles build and start command settings.
@@ -203,7 +214,7 @@ curl -X POST http://localhost:8000/api/negotiate \
 
 ### `POST /api/calls/log`
 
-Log a completed call. `call_id` and `timestamp` are auto-generated if omitted.
+Log a completed call. `call_id` and `timestamp` are auto-generated if omitted. If your workflow sends `sentiment_classifier` instead of `sentiment`, the API maps it into `sentiment`. Omit `call_duration_seconds` when unknown (stored as SQL `NULL`, not zero).
 
 ```bash
 curl -X POST http://localhost:8000/api/calls/log \
@@ -219,7 +230,7 @@ curl -X POST http://localhost:8000/api/calls/log \
     "loadboard_rate": 2850.0,
     "agreed_rate": 2780.0,
     "negotiation_rounds": 2,
-    "outcome": "booked",
+    "outcome": "load_booked",
     "sentiment": "positive",
     "call_duration_seconds": 245,
     "counter_offers": [2850, 2765.5],
@@ -242,9 +253,33 @@ List all logged calls, most recent first.
 curl -H "X-API-Key: acme-logistics-2026" http://localhost:8000/api/calls
 ```
 
+### `GET /api/loads`
+
+List all loads in the knowledge base (same data the agent searches), sorted by `load_id`.
+
+```bash
+curl -H "X-API-Key: acme-logistics-2026" http://localhost:8000/api/loads
+```
+
+### `GET /api/intelligence/carriers`
+
+Per-carrier aggregates from call history (used by the **Contact Intelligence** dashboard tab): booking rate, revenue, dominant sentiment, top lane, etc.
+
+```bash
+curl -H "X-API-Key: acme-logistics-2026" http://localhost:8000/api/intelligence/carriers
+```
+
+### `POST /api/admin/clear-calls`
+
+Deletes **all** rows in the `calls` table (loads unchanged). Same `X-API-Key` as other endpoints—intended for demo resets; the dashboard includes a **Clear call data** button that calls this route.
+
+```bash
+curl -X POST -H "X-API-Key: acme-logistics-2026" http://localhost:8000/api/admin/clear-calls
+```
+
 ### `GET /api/metrics`
 
-Aggregated metrics for the dashboard — conversion rate, revenue, sentiment, top lanes, hourly distribution, and more.
+Aggregated JSON for the main dashboard: KPIs, outcome/sentiment breakdowns, funnel, charts, rate-by-lane, equipment mix, and `all_calls` for the call log (no separate `recent_calls` payload).
 
 ```bash
 curl -H "X-API-Key: acme-logistics-2026" http://localhost:8000/api/metrics
@@ -260,14 +295,25 @@ Serves the operations dashboard. The browser never needs to type a key: the serv
 
 Access at `http://localhost:8000/dashboard` (or your Railway URL + `/dashboard`). Set `API_KEY` in `.env` / Railway variables to match what you expect for API calls.
 
-The dashboard displays:
-- KPI cards (total calls, conversion rate, revenue, negotiation stats, call duration)
-- Call outcome and sentiment breakdowns
-- Revenue intelligence (captured vs. potential, capture rate, avg discount)
-- Call volume over time and peak hour distribution
-- Top lanes leaderboard and equipment mix
+**Main dashboard**
 
-Auto-refreshes every 30 seconds. Click the refresh button for manual updates.
+- KPIs: booking rate, revenue booked, average call duration (where duration is logged), average negotiation rounds, negotiation win rate
+- Revenue strip: captured vs. potential, capture rate, average discount
+- Charts: call volume by day, calls by hour (24h), rate intel by lane (when booked data exists)
+- **Call flow funnel** (sequential stages vs. total calls)
+- Tables: outcomes, top lanes, sentiment, booked equipment mix
+- Expandable **call log** with per-call details
+
+**Other tabs**
+
+- **Conversations** — card view of calls from `/api/calls`
+- **Contact Intelligence** — `/api/intelligence/carriers` table
+- **Knowledge Base** — `/api/loads` load board
+
+**Controls**
+
+- **Clear call data** (admin): wipes call log only; keeps loads
+- Auto-refresh about every **30s** on the main dashboard; manual **refresh** in the top bar
 
 ---
 
@@ -276,4 +322,4 @@ Auto-refreshes every 30 seconds. Click the refresh button for manual updates.
 - **Live Dashboard:** [https://happy-robot-fde-production-f148.up.railway.app/dashboard](https://happy-robot-fde-production-f148.up.railway.app/dashboard)
 - **GitHub Repo:** [https://github.com/piercegf/happy-robot-fde](https://github.com/piercegf/happy-robot-fde)
 - **HappyRobot Workflow:** [https://platform.happyrobot.ai/fdealejandroperez/workflows/gchtmr5tol1e](https://platform.happyrobot.ai/fdealejandroperez/workflows/gchtmr5tol1e)
-- **Demo Video:** [VIDEO_URL]
+- **Demo Video:** *(add your Loom / YouTube link here — walkthrough: workflow setup, short live demo, dashboard)*
