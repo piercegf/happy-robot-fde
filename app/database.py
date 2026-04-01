@@ -258,6 +258,20 @@ def get_all_calls():
     return rows
 
 
+BOOKED_OUTCOMES = ("booked", "load_booked")
+REJECTED_OUTCOMES = ("rejected", "no_agreement")
+
+
+def _is_booked(outcome_col="outcome"):
+    vals = ",".join(f"'{v}'" for v in BOOKED_OUTCOMES)
+    return f"{outcome_col} IN ({vals})"
+
+
+def _is_rejected(outcome_col="outcome"):
+    vals = ",".join(f"'{v}'" for v in REJECTED_OUTCOMES)
+    return f"{outcome_col} IN ({vals})"
+
+
 def get_call_metrics():
     conn = get_db()
     cur = conn.cursor()
@@ -265,20 +279,25 @@ def get_call_metrics():
     cur.execute("SELECT COUNT(*) FROM calls")
     total_calls = cur.fetchone()[0]
 
+    empty = {
+        "total_calls": 0, "conversion_rate": 0, "avg_negotiation_rounds": 0,
+        "outcome_breakdown": {}, "sentiment_breakdown": {},
+        "avg_discount_pct": 0, "total_revenue_booked": 0,
+        "total_potential_revenue": 0, "revenue_capture_rate": 0,
+        "top_lanes": [], "avg_call_duration": 0, "calls_over_time": {},
+        "booked_by_equipment": {}, "avg_rate_by_lane": [],
+        "negotiation_success_rate": 0, "calls_by_hour": {},
+        "avg_time_to_book": 0, "revenue_per_minute": 0,
+        "missed_revenue": 0, "sentiment_to_booking": {},
+        "top_carriers": [], "recent_calls": [], "all_calls": [],
+        "call_flow_funnel": {"total": 0, "verified": 0, "eligible": 0, "loads_searched": 0, "negotiated": 0, "booked": 0},
+    }
+
     if total_calls == 0:
         conn.close()
-        return {
-            "total_calls": 0, "conversion_rate": 0, "avg_negotiation_rounds": 0,
-            "outcome_breakdown": {}, "sentiment_breakdown": {},
-            "avg_discount_pct": 0, "total_revenue_booked": 0,
-            "total_potential_revenue": 0, "revenue_capture_rate": 0,
-            "top_lanes": [], "avg_call_duration": 0, "calls_over_time": {},
-            "booked_by_equipment": {}, "avg_rate_by_lane": [],
-            "negotiation_success_rate": 0, "calls_by_hour": {},
-            "avg_time_to_book": 0,
-        }
+        return empty
 
-    cur.execute("SELECT COUNT(*) FROM calls WHERE outcome = 'booked'")
+    cur.execute(f"SELECT COUNT(*) FROM calls WHERE {_is_booked()}")
     booked = cur.fetchone()[0]
     conversion_rate = round((booked / total_calls) * 100, 1) if total_calls else 0
 
@@ -291,27 +310,27 @@ def get_call_metrics():
     cur.execute("SELECT sentiment, COUNT(*) as cnt FROM calls GROUP BY sentiment")
     sentiment_breakdown = {row["sentiment"]: row["cnt"] for row in cur.fetchall()}
 
-    cur.execute("SELECT SUM(agreed_rate) FROM calls WHERE outcome = 'booked' AND agreed_rate IS NOT NULL")
+    cur.execute(f"SELECT SUM(agreed_rate) FROM calls WHERE {_is_booked()} AND agreed_rate IS NOT NULL")
     total_revenue_booked = round(cur.fetchone()[0] or 0, 2)
 
-    cur.execute("SELECT SUM(loadboard_rate) FROM calls WHERE outcome = 'booked' AND loadboard_rate IS NOT NULL")
+    cur.execute(f"SELECT SUM(loadboard_rate) FROM calls WHERE {_is_booked()} AND loadboard_rate IS NOT NULL")
     total_potential_revenue = round(cur.fetchone()[0] or 0, 2)
 
     revenue_capture_rate = round((total_revenue_booked / total_potential_revenue) * 100, 1) if total_potential_revenue else 0
 
-    cur.execute("""
+    cur.execute(f"""
         SELECT AVG(
             CASE WHEN loadboard_rate > 0 AND agreed_rate IS NOT NULL
                 THEN ((loadboard_rate - agreed_rate) / loadboard_rate) * 100
                 ELSE NULL END
-        ) FROM calls WHERE outcome = 'booked'
+        ) FROM calls WHERE {_is_booked()}
     """)
     avg_discount_pct = round(cur.fetchone()[0] or 0, 1)
 
-    cur.execute("""
+    cur.execute(f"""
         SELECT requested_origin || ' → ' || requested_destination as lane,
             COUNT(*) as cnt,
-            ROUND(SUM(CASE WHEN outcome='booked' THEN 1.0 ELSE 0 END) / COUNT(*) * 100, 1) as booking_rate
+            ROUND(SUM(CASE WHEN {_is_booked()} THEN 1.0 ELSE 0 END) / COUNT(*) * 100, 1) as booking_rate
         FROM calls
         WHERE requested_origin IS NOT NULL AND requested_destination IS NOT NULL
         GROUP BY lane ORDER BY cnt DESC LIMIT 5
@@ -327,19 +346,19 @@ def get_call_metrics():
     """)
     calls_over_time = {row["day"]: row["cnt"] for row in cur.fetchall()}
 
-    cur.execute("""
+    cur.execute(f"""
         SELECT equipment_type, COUNT(*) as cnt
-        FROM calls WHERE outcome = 'booked' AND equipment_type IS NOT NULL
+        FROM calls WHERE {_is_booked()} AND equipment_type IS NOT NULL
         GROUP BY equipment_type
     """)
     booked_by_equipment = {row["equipment_type"]: row["cnt"] for row in cur.fetchall()}
 
-    cur.execute("""
+    cur.execute(f"""
         SELECT requested_origin || ' → ' || requested_destination as lane,
             ROUND(AVG(loadboard_rate), 2) as avg_loadboard,
             ROUND(AVG(agreed_rate), 2) as avg_agreed
         FROM calls
-        WHERE outcome = 'booked' AND loadboard_rate IS NOT NULL AND agreed_rate IS NOT NULL
+        WHERE {_is_booked()} AND loadboard_rate IS NOT NULL AND agreed_rate IS NOT NULL
         GROUP BY lane ORDER BY COUNT(*) DESC LIMIT 5
     """)
     avg_rate_by_lane = [
@@ -349,7 +368,7 @@ def get_call_metrics():
 
     cur.execute("SELECT COUNT(*) FROM calls WHERE negotiation_rounds > 0")
     negotiated_total = cur.fetchone()[0]
-    cur.execute("SELECT COUNT(*) FROM calls WHERE negotiation_rounds > 0 AND outcome = 'booked'")
+    cur.execute(f"SELECT COUNT(*) FROM calls WHERE negotiation_rounds > 0 AND {_is_booked()}")
     negotiated_booked = cur.fetchone()[0]
     negotiation_success_rate = round((negotiated_booked / negotiated_total) * 100, 1) if negotiated_total else 0
 
@@ -359,28 +378,27 @@ def get_call_metrics():
     """)
     calls_by_hour = {str(row["hr"]): row["cnt"] for row in cur.fetchall()}
 
-    cur.execute("SELECT AVG(call_duration_seconds) FROM calls WHERE outcome = 'booked'")
+    cur.execute(f"SELECT AVG(call_duration_seconds) FROM calls WHERE {_is_booked()}")
     avg_time_to_book = round(cur.fetchone()[0] or 0, 1)
 
-    total_call_seconds = 0
     cur.execute("SELECT SUM(call_duration_seconds) FROM calls WHERE call_duration_seconds IS NOT NULL")
     total_call_seconds = cur.fetchone()[0] or 0
     revenue_per_minute = round((total_revenue_booked / (total_call_seconds / 60)), 2) if total_call_seconds > 0 else 0
 
-    cur.execute("SELECT SUM(loadboard_rate) FROM calls WHERE outcome = 'rejected' AND loadboard_rate IS NOT NULL")
+    cur.execute(f"SELECT SUM(loadboard_rate) FROM calls WHERE {_is_rejected()} AND loadboard_rate IS NOT NULL")
     missed_revenue = round(cur.fetchone()[0] or 0, 2)
 
-    cur.execute("""
-        SELECT sentiment, 
-            ROUND(SUM(CASE WHEN outcome='booked' THEN 1.0 ELSE 0 END) / COUNT(*) * 100, 1) as book_rate
+    cur.execute(f"""
+        SELECT sentiment,
+            ROUND(SUM(CASE WHEN {_is_booked()} THEN 1.0 ELSE 0 END) / COUNT(*) * 100, 1) as book_rate
         FROM calls WHERE sentiment IS NOT NULL
         GROUP BY sentiment
     """)
     sentiment_to_booking = {row["sentiment"]: row["book_rate"] for row in cur.fetchall()}
 
-    cur.execute("""
-        SELECT carrier_name, COUNT(*) as cnt, 
-            SUM(CASE WHEN outcome='booked' THEN 1 ELSE 0 END) as booked_cnt,
+    cur.execute(f"""
+        SELECT carrier_name, COUNT(*) as cnt,
+            SUM(CASE WHEN {_is_booked()} THEN 1 ELSE 0 END) as booked_cnt,
             ROUND(SUM(COALESCE(agreed_rate, 0)), 2) as total_rev
         FROM calls WHERE carrier_name IS NOT NULL
         GROUP BY carrier_name ORDER BY cnt DESC LIMIT 8
@@ -397,6 +415,35 @@ def get_call_metrics():
         FROM calls ORDER BY timestamp DESC LIMIT 10
     """)
     recent_calls = [dict(r) for r in cur.fetchall()]
+
+    cur.execute("""
+        SELECT call_id, timestamp, carrier_name, carrier_mc,
+            requested_origin, requested_destination, equipment_type,
+            load_id_matched, loadboard_rate, agreed_rate,
+            negotiation_rounds, outcome, sentiment,
+            call_duration_seconds, notes
+        FROM calls ORDER BY timestamp DESC LIMIT 50
+    """)
+    all_calls = [dict(r) for r in cur.fetchall()]
+
+    # Call flow funnel
+    cur.execute("SELECT COUNT(*) FROM calls WHERE carrier_mc IS NOT NULL AND carrier_mc != ''")
+    verified = cur.fetchone()[0]
+    cur.execute(f"SELECT COUNT(*) FROM calls WHERE outcome NOT IN ('carrier_not_eligible', 'not_authorized')")
+    eligible = cur.fetchone()[0]
+    cur.execute("SELECT COUNT(*) FROM calls WHERE requested_origin IS NOT NULL AND requested_origin != ''")
+    loads_searched = cur.fetchone()[0]
+    cur.execute("SELECT COUNT(*) FROM calls WHERE negotiation_rounds > 0")
+    negotiated = cur.fetchone()[0]
+
+    call_flow_funnel = {
+        "total": total_calls,
+        "verified": verified,
+        "eligible": eligible,
+        "loads_searched": loads_searched,
+        "negotiated": negotiated,
+        "booked": booked,
+    }
 
     conn.close()
 
@@ -423,4 +470,6 @@ def get_call_metrics():
         "sentiment_to_booking": sentiment_to_booking,
         "top_carriers": top_carriers,
         "recent_calls": recent_calls,
+        "all_calls": all_calls,
+        "call_flow_funnel": call_flow_funnel,
     }
