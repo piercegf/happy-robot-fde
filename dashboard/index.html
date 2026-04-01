@@ -551,8 +551,15 @@ table.data-table{width:100%;border-collapse:collapse}
   </div>
 </div>
 
+<!-- apiKey injected by the API server when you open GET /dashboard (never commit a real key here) -->
+<script type="application/json" id="acme-bootstrap">{"apiKey":__ACME_API_KEY_LITERAL__}</script>
 <script>
-const API_KEY = 'acme-logistics-2026';
+const API_ERR_DEFAULT = 'The dashboard cannot reach the backend. Make sure the server is running and try again.';
+let _acmeBoot = {};
+try {
+  _acmeBoot = JSON.parse(document.getElementById('acme-bootstrap').textContent);
+} catch (e) {}
+const API_KEY = typeof _acmeBoot.apiKey === 'string' ? _acmeBoot.apiKey : '';
 const API_BASE = window.location.origin;
 
 const COLORS = {
@@ -1026,6 +1033,13 @@ async function fetchLoads() {
 
 async function fetchData() {
   const btn = document.getElementById('refreshBtn');
+  const errP = document.querySelector('#errorState .error-card p');
+  if (!API_KEY) {
+    if (errP) errP.textContent = 'Missing API key: open this app at /dashboard on your Acme API server (uvicorn), not as a raw file. Set API_KEY in the server environment.';
+    showError();
+    return;
+  }
+  if (errP) errP.textContent = API_ERR_DEFAULT;
   btn.classList.add('spinning');
   try {
     const resp = await fetch(API_BASE+'/api/metrics',{headers:{'X-API-Key':API_KEY}});

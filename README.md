@@ -246,13 +246,13 @@ curl -H "X-API-Key: acme-logistics-2026" http://localhost:8000/api/metrics
 
 ### `GET /dashboard`
 
-Opens the operations dashboard in a browser. No API key required.
+Serves the operations dashboard. The browser never needs to type a key: the server injects `API_KEY` from the environment into the page when it is rendered (the committed `dashboard/index.html` only contains a placeholder, not a real secret). Open the file via this route only—opening `index.html` directly from disk will not work. Anyone who can load `/dashboard` can still see the key in DevTools; use a strong `API_KEY` and treat the dashboard URL like an admin surface.
 
 ---
 
 ## Dashboard
 
-Access at `http://localhost:8000/dashboard` (or your Railway URL + `/dashboard`).
+Access at `http://localhost:8000/dashboard` (or your Railway URL + `/dashboard`). Set `API_KEY` in `.env` / Railway variables to match what you expect for API calls.
 
 The dashboard displays:
 - KPI cards (total calls, conversion rate, revenue, negotiation stats, call duration)

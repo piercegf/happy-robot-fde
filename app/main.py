@@ -10,7 +10,7 @@ import httpx
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException, Security
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.security import APIKeyHeader
 from pydantic import BaseModel, model_validator
 
@@ -30,6 +30,21 @@ load_dotenv()
 
 API_KEY = os.getenv("API_KEY", "acme-logistics-2026")
 FMCSA_WEBKEY = os.getenv("FMCSA_WEBKEY", "")
+
+_DASHBOARD_DIR = Path("dashboard")
+_DASHBOARD_INDEX = _DASHBOARD_DIR / "index.html"
+# Replaced when serving /dashboard so the key is not committed in index.html
+_ACME_API_KEY_PLACEHOLDER = "__ACME_API_KEY_LITERAL__"
+
+
+def _render_dashboard_html() -> str:
+    raw = _DASHBOARD_INDEX.read_text(encoding="utf-8")
+    if _ACME_API_KEY_PLACEHOLDER not in raw:
+        raise RuntimeError(
+            "dashboard/index.html must contain the placeholder " + _ACME_API_KEY_PLACEHOLDER
+        )
+    # json.dumps produces a valid JSON string literal (quoted, escaped)
+    return raw.replace(_ACME_API_KEY_PLACEHOLDER, json.dumps(API_KEY))
 
 app = FastAPI(
     title="Acme Logistics — Inbound Carrier Sales API",
@@ -324,13 +339,17 @@ async def admin_clear_calls(api_key: str = Security(verify_api_key)):
     return {"status": "ok", "deleted": deleted}
 
 
-@app.get("/dashboard")
+@app.get("/dashboard", response_class=HTMLResponse)
 async def dashboard():
-    return FileResponse("dashboard/index.html")
+    html = _render_dashboard_html()
+    return HTMLResponse(content=html, headers={"Cache-Control": "no-store"})
 
 
 @app.get("/dashboard/{filename}")
 async def dashboard_static(filename: str):
+    if filename == "index.html":
+        html = _render_dashboard_html()
+        return HTMLResponse(content=html, headers={"Cache-Control": "no-store"})
     root = Path("dashboard").resolve()
     try:
         candidate = (root / filename).resolve()
