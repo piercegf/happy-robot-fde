@@ -19,7 +19,24 @@ if (!WORKFLOW_ID) {
 const client = new HappyRobotClient({ apiKey: API_KEY });
 
 const app = express();
-app.use(cors({ origin: "http://localhost:5173" }));
+// Allow any localhost / 127.0.0.1 port (Vite often uses 5174+ when 5173 is busy)
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      try {
+        const u = new URL(origin);
+        const ok =
+          (u.hostname === "localhost" || u.hostname === "127.0.0.1") &&
+          (u.protocol === "http:" || u.protocol === "https:");
+        callback(null, ok);
+      } catch {
+        callback(null, false);
+      }
+    },
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 app.post("/api/voice/token", async (_req, res) => {

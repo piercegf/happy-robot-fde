@@ -2,7 +2,13 @@ import { useState, useRef, useCallback } from "react";
 import { HappyRobotVoiceClient } from "@happyrobot-ai/sdk/voice";
 import type { VoiceConnection } from "@happyrobot-ai/sdk/voice";
 
-const SERVER_URL = "http://localhost:3001";
+/** Empty = use same origin + Vite proxy → works on localhost:5173, 5174, 5175, … */
+const VOICE_SERVER = (import.meta.env.VITE_VOICE_SERVER_URL || "").replace(/\/$/, "");
+const TOKEN_URL = VOICE_SERVER ? `${VOICE_SERVER}/api/voice/token` : "/api/voice/token";
+
+const DASHBOARD_URL =
+  import.meta.env.VITE_DASHBOARD_URL ||
+  "https://happy-robot-fde-production-f148.up.railway.app/dashboard";
 
 type LogEntry = {
   time: string;
@@ -49,8 +55,9 @@ export function App() {
     addLog("Requesting voice token from server...", "info");
 
     try {
-      const res = await fetch(`${SERVER_URL}/api/voice/token`, {
+      const res = await fetch(TOKEN_URL, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
       });
 
       if (!res.ok) {
@@ -95,8 +102,13 @@ export function App() {
       });
 
       connectionRef.current = connection;
-    } catch (err: any) {
-      addLog(`Failed to start call: ${err.message}`, "error");
+    } catch (err: unknown) {
+      let msg = err instanceof Error ? err.message : String(err);
+      if (msg === "Failed to fetch") {
+        msg =
+          "Failed to fetch — start token server (cd server && npm run dev, port 3001). Restart Vite after pull so the /api/voice proxy applies.";
+      }
+      addLog(`Failed to start call: ${msg}`, "error");
       setIsConnecting(false);
     }
   }, [addLog, startTimer, stopTimer]);
@@ -134,11 +146,7 @@ export function App() {
       {/* Sidebar accent */}
       <div style={styles.sidebar}>
         <div style={styles.sidebarLogo}>
-          <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-            <rect width="32" height="32" rx="8" fill="#F97316" />
-            <path d="M8 22V10l5 6 5-6v12" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            <path d="M20 14l4-4v12" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          <img src="/logo.png" alt="" width={32} height={32} style={{ borderRadius: 6, objectFit: "contain" }} />
           <span style={styles.sidebarTitle}>Acme Logistics</span>
         </div>
         <div style={styles.sidebarSection}>Voice Test Client</div>
@@ -146,10 +154,10 @@ export function App() {
           <PhoneIcon />
           Inbound Call Sim
         </div>
-        <div style={styles.sidebarLink}>
+        <a href={DASHBOARD_URL} target="_blank" rel="noopener noreferrer" style={{ ...styles.sidebarLink, textDecoration: "none" }}>
           <DashIcon />
           Dashboard
-        </div>
+        </a>
         <div style={styles.sidebarSpacer} />
         <div style={styles.sidebarFooter}>Powered by HappyRobot AI</div>
       </div>
@@ -157,6 +165,7 @@ export function App() {
       {/* Main area */}
       <div style={styles.main}>
         <div style={styles.topbar}>
+          <img src="/logo.png" alt="Acme Logistics" width={32} height={32} style={{ borderRadius: 6, objectFit: "contain" }} />
           <span style={styles.topbarTitle}>Inbound Call Simulator</span>
           <div style={styles.topbarDivider} />
           <span style={styles.topbarSub}>Web SDK Test Client</span>
