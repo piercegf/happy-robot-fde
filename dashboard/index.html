@@ -71,6 +71,7 @@ body{background:var(--bg);color:var(--t1);font-family:'Inter',system-ui,sans-ser
 .chart-card-badge{font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:600;padding:3px 8px;border-radius:6px}
 .chart-card-badge.green{background:rgba(34,197,94,.1);color:var(--green)}
 .chart-card-badge.blue{background:rgba(59,130,246,.1);color:var(--blue)}
+.chart-card-badge.hour{background:rgba(139,92,246,.12);color:var(--purple)}
 .mini-chart{height:80px;position:relative}
 
 .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
@@ -89,17 +90,31 @@ body{background:var(--bg);color:var(--t1);font-family:'Inter',system-ui,sans-ser
 .kpi-value{font-family:'JetBrains Mono',monospace;font-size:1.3rem;font-weight:600;color:var(--t1);line-height:1.2}
 .kpi-sub{font-size:.7rem;color:var(--t3);margin-top:3px}
 
-/* Funnel */
-.funnel-section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:20px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+/* Funnel — centered taper (width ∝ share of top stage) */
+.funnel-section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 24px 28px;margin-bottom:20px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
 .funnel-title{font-size:.85rem;font-weight:600;color:var(--t1);margin-bottom:8px;display:flex;align-items:center;gap:8px}
-.funnel-hint{font-size:.72rem;color:var(--t3);line-height:1.45;margin:0 0 14px 24px;max-width:52rem}
+.funnel-hint{font-size:.72rem;color:var(--t3);line-height:1.45;margin:0 0 18px 0;max-width:52rem}
 .funnel-title svg{width:16px;height:16px;color:var(--t2)}
-.funnel-bar-row{display:flex;align-items:center;gap:12px;margin-bottom:10px}
-.funnel-label{width:130px;font-size:.78rem;font-weight:500;color:var(--t2);text-align:right;flex-shrink:0}
-.funnel-bar-track{flex:1;height:28px;background:var(--bg);border-radius:6px;overflow:hidden;position:relative}
-.funnel-bar-fill{height:100%;border-radius:6px;transition:width .8s ease;display:flex;align-items:center;padding:0 10px;min-width:40px}
-.funnel-bar-value{font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:600;color:#fff;white-space:nowrap}
-.funnel-pct{width:52px;font-family:'JetBrains Mono',monospace;font-size:.75rem;font-weight:600;color:var(--t2);text-align:right;flex-shrink:0}
+.funnel-viz{width:100%;max-width:560px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 4px}
+.funnel-connector{width:2px;flex:0 0 6px;background:linear-gradient(180deg,var(--border),var(--border));opacity:.6}
+.funnel-row{width:100%;display:flex;justify-content:center;perspective:500px}
+.funnel-seg{
+  position:relative;
+  min-height:40px;
+  border-radius:4px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  padding:10px 12px;
+  box-sizing:border-box;
+  color:#fff;
+  text-shadow:0 1px 2px rgba(0,0,0,.18);
+  box-shadow:0 4px 14px rgba(0,0,0,.1);
+  transition:width .75s cubic-bezier(.22,1,.36,1),clip-path .75s ease;
+  clip-path:polygon(4% 0,96% 0,100% 100%,0 100%);
+}
+.funnel-seg-label{font-size:.76rem;font-weight:600;letter-spacing:.01em}
+.funnel-seg-stats{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 12px;font-family:'JetBrains Mono',monospace;font-size:.7rem;font-weight:600;opacity:.95}
+.funnel-seg-drop{font-size:.62rem;font-weight:500;opacity:.88}
+.funnel-legend-foot{font-size:.68rem;color:var(--t3);text-align:center;margin-top:14px;max-width:480px;margin-left:auto;margin-right:auto;line-height:1.4}
 
 /* Tables */
 .tables-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}
@@ -284,7 +299,7 @@ table.data-table{width:100%;border-collapse:collapse}
         <div class="chart-card">
           <div class="chart-card-header">
             <span class="chart-card-title">Calls by Hour</span>
-            <span class="chart-card-badge green" id="badgePeakHour">—</span>
+            <span class="chart-card-badge hour" id="badgePeakHour">—</span>
           </div>
           <div class="mini-chart"><canvas id="chartHours"></canvas></div>
         </div>
@@ -594,12 +609,14 @@ function fmtDur(s) { if (s == null || s === '' || Number(s) <= 0) return '—'; 
 
 function peakHourLabel(cbh) {
   let bestH = null, bestN = 0;
+  let totalH = 0;
   for (let h = 0; h < 24; h++) {
     const n = cbh[String(h)] || 0;
+    totalH += n;
     if (n > bestN) { bestN = n; bestH = h; }
   }
-  if (bestN === 0 || bestH === null) return '—';
-  return 'Peak ' + fmtHour(bestH) + ' · ' + bestN;
+  if (bestN === 0 || bestH === null) return totalH === 0 ? 'No hour data' : 'Flat';
+  return 'Peak ' + fmtHour(bestH) + ' · ' + bestN + ' calls';
 }
 function fmtCur(n) { if (n==null) return '$0'; return '$'+Math.round(n).toLocaleString('en-US'); }
 function fmtPct(v) { return (v||0).toFixed(1)+'%'; }
@@ -626,14 +643,44 @@ Chart.defaults.plugins.tooltip.displayColors = false;
 function buildVolumeChart(data) {
   const cot = data.calls_over_time || {};
   const sorted = Object.keys(cot).sort();
-  const labels = sorted.map(d => new Date(d+'T00:00:00').toLocaleDateString('en-US',{weekday:'short'}));
+  if (!sorted.length) return;
+  const labels = sorted.map(d => new Date(d+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}));
   const values = sorted.map(d => cot[d]);
+  const vmax = Math.max(...values, 1);
   const ctx = document.getElementById('chartVolume').getContext('2d');
   const g = ctx.createLinearGradient(0,0,0,80);
   g.addColorStop(0,'rgba(59,130,246,0.15)'); g.addColorStop(1,'rgba(59,130,246,0)');
+  const showPoints = sorted.length <= 14;
   charts.volume = new Chart(ctx, {
-    type:'line', data:{labels, datasets:[{data:values,borderColor:COLORS.blue,borderWidth:2,backgroundColor:g,fill:true,tension:.4,pointRadius:0,pointHoverRadius:4,pointBackgroundColor:COLORS.blue}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:COLORS.t3,font:{size:10}},border:{display:false}},y:{display:false}}}
+    type:'line',
+    data:{labels, datasets:[{
+      data:values,
+      borderColor:COLORS.blue,
+      borderWidth:2,
+      backgroundColor:g,
+      fill:true,
+      tension:.35,
+      pointRadius: showPoints ? 5 : 0,
+      pointHoverRadius:6,
+      pointBackgroundColor:COLORS.blue,
+      pointBorderColor:'#fff',
+      pointBorderWidth:2,
+    }]},
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y+' calls'}}},
+      scales:{
+        x:{grid:{display:false},ticks:{color:COLORS.t3,font:{size:10}},border:{display:false}},
+        y:{
+          beginAtZero:true,
+          suggestedMax:Math.ceil(vmax * 1.15) || 1,
+          ticks:{stepSize:1,precision:0,color:COLORS.t3,font:{size:9}},
+          grid:{color:'rgba(0,0,0,.05)',drawBorder:false},
+          border:{display:false},
+        },
+      },
+    },
   });
 }
 
@@ -641,16 +688,36 @@ function buildHoursChart(data) {
   const cbh = data.calls_by_hour || {};
   const labels=[], values=[];
   for (let h = 0; h < 24; h++) { labels.push(fmtHour(h)); values.push(cbh[String(h)] || 0); }
+  const hmax = Math.max(...values, 1);
   charts.hours = new Chart(document.getElementById('chartHours'),{
-    type:'bar', data:{labels,datasets:[{data:values,backgroundColor:'rgba(34,197,94,0.55)',borderRadius:3,borderSkipped:false,barPercentage:.6}]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:COLORS.t3,font:{size:8},maxRotation:90,maxTicksLimit:24},border:{display:false}},y:{display:false,beginAtZero:true,suggestedMax:undefined}}}
+    type:'bar',
+    data:{labels,datasets:[{data:values,backgroundColor:'rgba(34,197,94,0.55)',borderRadius:4,borderSkipped:false,barPercentage:.75,maxBarThickness:14}]},
+    options:{
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.parsed.y+' calls'}}},
+      scales:{
+        x:{grid:{display:false},ticks:{color:COLORS.t3,font:{size:7},maxRotation:90,autoSkip:true,maxTicksLimit:24},border:{display:false}},
+        y:{
+          beginAtZero:true,
+          suggestedMax:Math.ceil(hmax * 1.2) || 1,
+          ticks:{stepSize:1,precision:0,color:COLORS.t3,font:{size:9}},
+          grid:{color:'rgba(0,0,0,.05)',drawBorder:false},
+          border:{display:false},
+        },
+      },
+    },
   });
 }
 
 function buildFunnel(data) {
+  const el = document.getElementById('funnelContent');
   const f = data.call_flow_funnel || {};
   const total = f.total || 0;
-  if(total === 0) { document.getElementById('funnelContent').innerHTML = '<div style="text-align:center;color:var(--t3);padding:16px">No call data yet</div>'; return; }
+  if (total === 0) {
+    el.innerHTML = '<div style="text-align:center;color:var(--t3);padding:16px">No call data yet</div>';
+    return;
+  }
   const steps = [
     { label:'Total Calls', val:f.total, color:COLORS.blue },
     { label:'MC Verified', val:f.verified, color:COLORS.purple },
@@ -659,14 +726,26 @@ function buildFunnel(data) {
     { label:'Negotiated', val:f.negotiated, color:'#EC4899' },
     { label:'Load Booked', val:f.booked, color:COLORS.green },
   ];
-  document.getElementById('funnelContent').innerHTML = steps.map(s => {
-    const pct = total > 0 ? (s.val / total * 100) : 0;
-    return `<div class="funnel-bar-row">
-      <span class="funnel-label">${s.label}</span>
-      <div class="funnel-bar-track"><div class="funnel-bar-fill" style="width:${Math.max(pct,3)}%;background:${s.color}"><span class="funnel-bar-value">${s.val}</span></div></div>
-      <span class="funnel-pct">${pct.toFixed(0)}%</span>
-    </div>`;
-  }).join('');
+  const topVal = Math.max(steps[0].val, 1);
+  const parts = [];
+  let prevVal = steps[0].val;
+  steps.forEach((s, i) => {
+    const pctOfTotal = total > 0 ? (s.val / total) * 100 : 0;
+    const widthPct = Math.min(100, Math.max(20, (s.val / topVal) * 100));
+    let retainHtml = '';
+    if (i > 0) {
+      const pctPrev = prevVal > 0 ? (s.val / prevVal) * 100 : 0;
+      retainHtml = `<span class="funnel-seg-drop">${pctPrev >= 100 ? '100%' : pctPrev.toFixed(0) + '% of prior stage'}</span>`;
+      parts.push('<div class="funnel-connector" aria-hidden="true"></div>');
+    }
+    parts.push(`<div class="funnel-row"><div class="funnel-seg" style="width:${widthPct}%;background:${s.color}">
+      <span class="funnel-seg-label">${s.label}</span>
+      <span class="funnel-seg-stats"><span>${s.val}</span><span>${pctOfTotal.toFixed(0)}% of calls</span>${retainHtml}</span>
+    </div></div>`);
+    prevVal = s.val;
+  });
+  el.innerHTML = `<div class="funnel-viz">${parts.join('')}</div>
+    <p class="funnel-legend-foot">Each band narrows vs. total calls. “% of prior stage” shows drop-off from the step above.</p>`;
 }
 
 function buildOutcomesTable(data) {
