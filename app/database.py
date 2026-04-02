@@ -134,6 +134,154 @@ SEED_LOADS = [
     },
 ]
 
+# Shown on first boot when the call log is empty (demo / local / fresh Railway volume).
+SEED_DEMO_CALLS = [
+    {
+        "call_id": "demo-seed-001",
+        "timestamp": "2026-04-01T14:22:00+00:00",
+        "carrier_mc": "MC-120500",
+        "carrier_name": "Swift Transportation Co",
+        "requested_origin": "Chicago, IL",
+        "requested_destination": "Dallas, TX",
+        "equipment_type": "Dry Van",
+        "load_id_matched": "LD-1001",
+        "loadboard_rate": 2850.0,
+        "agreed_rate": 2850.0,
+        "negotiation_rounds": 0,
+        "outcome": "load_booked",
+        "sentiment": "positive",
+        "call_duration_seconds": 185,
+        "counter_offers": [],
+        "notes": "Accepted posted rate immediately.",
+    },
+    {
+        "call_id": "demo-seed-002",
+        "timestamp": "2026-04-01T16:45:00+00:00",
+        "carrier_mc": "MC-107039",
+        "carrier_name": "JB Hunt Transport",
+        "requested_origin": "Los Angeles, CA",
+        "requested_destination": "Phoenix, AZ",
+        "equipment_type": "Reefer",
+        "load_id_matched": "LD-1002",
+        "loadboard_rate": 1800.0,
+        "agreed_rate": 1746.0,
+        "negotiation_rounds": 2,
+        "outcome": "load_booked",
+        "sentiment": "positive",
+        "call_duration_seconds": 312,
+        "counter_offers": [1800.0, 1746.0],
+        "notes": "Closed after second counter.",
+    },
+    {
+        "call_id": "demo-seed-003",
+        "timestamp": "2026-04-01T10:08:00+00:00",
+        "carrier_mc": "MC-133655",
+        "carrier_name": "Schneider National",
+        "requested_origin": "Atlanta, GA",
+        "requested_destination": "Miami, FL",
+        "equipment_type": "Flatbed",
+        "load_id_matched": "LD-1003",
+        "loadboard_rate": 2200.0,
+        "agreed_rate": 2134.0,
+        "negotiation_rounds": 1,
+        "outcome": "load_booked",
+        "sentiment": "neutral",
+        "call_duration_seconds": 240,
+        "counter_offers": [2200.0],
+        "notes": "Single counter accepted.",
+    },
+    {
+        "call_id": "demo-seed-004",
+        "timestamp": "2026-04-02T09:15:00+00:00",
+        "carrier_mc": "MC-215987",
+        "carrier_name": "Heartland Express",
+        "requested_origin": "Chicago, IL",
+        "requested_destination": "Dallas, TX",
+        "equipment_type": "Dry Van",
+        "load_id_matched": "LD-1001",
+        "loadboard_rate": 2850.0,
+        "agreed_rate": None,
+        "negotiation_rounds": 3,
+        "outcome": "no_agreement",
+        "sentiment": "negative",
+        "call_duration_seconds": 420,
+        "counter_offers": [2850.0, 2764.5, 2707.5],
+        "notes": "Wanted rate above floor; walked away.",
+    },
+    {
+        "call_id": "demo-seed-005",
+        "timestamp": "2026-04-02T11:30:00+00:00",
+        "carrier_mc": "MC-142400",
+        "carrier_name": "Werner Enterprises",
+        "requested_origin": "Houston, TX",
+        "requested_destination": "New Orleans, LA",
+        "equipment_type": "Dry Van",
+        "load_id_matched": "LD-1004",
+        "loadboard_rate": 1200.0,
+        "agreed_rate": None,
+        "negotiation_rounds": 0,
+        "outcome": "callback_requested",
+        "sentiment": "positive",
+        "call_duration_seconds": 155,
+        "counter_offers": [],
+        "notes": "Checking driver availability; will call back.",
+    },
+    {
+        "call_id": "demo-seed-006",
+        "timestamp": "2026-04-02T13:00:00+00:00",
+        "carrier_mc": "MC-200618",
+        "carrier_name": "Coyote Logistics",
+        "requested_origin": "Portland, OR",
+        "requested_destination": "Boise, ID",
+        "equipment_type": "Dry Van",
+        "load_id_matched": None,
+        "loadboard_rate": None,
+        "agreed_rate": None,
+        "negotiation_rounds": 0,
+        "outcome": "no_loads_available",
+        "sentiment": "neutral",
+        "call_duration_seconds": 95,
+        "counter_offers": [],
+        "notes": "No matching loads in network.",
+    },
+    {
+        "call_id": "demo-seed-007",
+        "timestamp": "2026-04-01T08:40:00+00:00",
+        "carrier_mc": "MC-999999",
+        "carrier_name": "Unknown Carrier LLC",
+        "requested_origin": "Unknown",
+        "requested_destination": "Unknown",
+        "equipment_type": None,
+        "load_id_matched": None,
+        "loadboard_rate": None,
+        "agreed_rate": None,
+        "negotiation_rounds": 0,
+        "outcome": "carrier_not_eligible",
+        "sentiment": "negative",
+        "call_duration_seconds": 72,
+        "counter_offers": [],
+        "notes": "MC authority could not be verified.",
+    },
+    {
+        "call_id": "demo-seed-008",
+        "timestamp": "2026-04-02T15:20:00+00:00",
+        "carrier_mc": "MC-143123",
+        "carrier_name": "Landstar System",
+        "requested_origin": "Dallas, TX",
+        "requested_destination": "Los Angeles, CA",
+        "equipment_type": "Dry Van",
+        "load_id_matched": "LD-1010",
+        "loadboard_rate": 3400.0,
+        "agreed_rate": 3230.0,
+        "negotiation_rounds": 3,
+        "outcome": "load_booked",
+        "sentiment": "positive",
+        "call_duration_seconds": 380,
+        "counter_offers": [3400.0, 3298.0, 3230.0],
+        "notes": "Long-haul; booked at floor.",
+    },
+]
+
 
 def _get_db_path():
     return os.getenv("DB_PATH", DB_PATH)
@@ -199,6 +347,25 @@ def init_db():
                 VALUES (:load_id, :origin, :destination, :pickup_datetime, :delivery_datetime,
                     :equipment_type, :loadboard_rate, :notes, :weight, :commodity_type, :num_of_pieces, :miles, :dimensions)
             """, load)
+
+    cur.execute("SELECT COUNT(*) FROM calls")
+    if cur.fetchone()[0] == 0:
+        for call in SEED_DEMO_CALLS:
+            row = dict(call)
+            co = row.get("counter_offers")
+            if isinstance(co, (list, dict)):
+                row["counter_offers"] = json.dumps(co)
+            cur.execute(
+                """
+                INSERT INTO calls (call_id, timestamp, carrier_mc, carrier_name, requested_origin,
+                    requested_destination, equipment_type, load_id_matched, loadboard_rate, agreed_rate,
+                    negotiation_rounds, outcome, sentiment, call_duration_seconds, counter_offers, notes)
+                VALUES (:call_id, :timestamp, :carrier_mc, :carrier_name, :requested_origin,
+                    :requested_destination, :equipment_type, :load_id_matched, :loadboard_rate, :agreed_rate,
+                    :negotiation_rounds, :outcome, :sentiment, :call_duration_seconds, :counter_offers, :notes)
+                """,
+                row,
+            )
 
     conn.commit()
     conn.close()
