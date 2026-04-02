@@ -8,8 +8,6 @@
 
 <p align="center"><em>AI-powered inbound carrier sales for Acme Logistics: MC verification (FMCSA), load search, negotiation, post-call logging, and analytics.</em></p>
 
-<p align="center"><strong>Reviewer handoff (links, access, doc index):</strong> <code>docs/handoff_carlos.md</code></p>
-
 ---
 
 ## Architecture
