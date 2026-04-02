@@ -720,12 +720,17 @@ def get_call_metrics():
     calls_by_hour = {str(row["hr"]): row["cnt"] for row in cur.fetchall()}
 
     cur.execute("""
-        SELECT call_id, timestamp, carrier_name, carrier_mc,
-            requested_origin, requested_destination, equipment_type,
-            load_id_matched, loadboard_rate, agreed_rate,
-            negotiation_rounds, outcome, sentiment,
-            call_duration_seconds, notes
-        FROM calls ORDER BY timestamp DESC LIMIT 50
+        SELECT
+            c.call_id, c.timestamp, c.carrier_name, c.carrier_mc,
+            c.requested_origin, c.requested_destination, c.equipment_type,
+            c.load_id_matched, c.loadboard_rate, c.agreed_rate,
+            c.negotiation_rounds, c.outcome, c.sentiment,
+            c.call_duration_seconds, c.notes,
+            l.pickup_datetime, l.delivery_datetime
+        FROM calls c
+        LEFT JOIN loads l ON c.load_id_matched = l.load_id
+        ORDER BY c.timestamp DESC
+        LIMIT 50
     """)
     all_calls = [dict(r) for r in cur.fetchall()]
 

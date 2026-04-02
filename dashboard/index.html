@@ -888,6 +888,8 @@ function buildCallLog(data) {
     html += `<tr class="call-detail-row" id="detail-${idx}" style="display:none"><td colspan="11"><div class="call-detail-inner">
       <div class="detail-field"><span class="detail-label">Timestamp</span><span class="detail-value mono">${ts}</span></div>
       <div class="detail-field"><span class="detail-label">Load Matched</span><span class="detail-value mono">${c.load_id_matched||'None'}</span></div>
+      <div class="detail-field"><span class="detail-label">Pickup time</span><span class="detail-value mono">${c.pickup_datetime||'—'}</span></div>
+      <div class="detail-field"><span class="detail-label">Delivery time</span><span class="detail-value mono">${c.delivery_datetime||'—'}</span></div>
       <div class="detail-field"><span class="detail-label">Discount Given</span><span class="detail-value mono">${discount}</span></div>
       <div class="detail-field"><span class="detail-label">Notes</span><span class="detail-value">${c.notes||'—'}</span></div>
     </div></td></tr>`;

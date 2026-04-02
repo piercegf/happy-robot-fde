@@ -329,11 +329,12 @@ Access at `http://localhost:8000/dashboard` (or your Railway URL + `/dashboard`)
 **Main dashboard**
 
 - KPIs: booking rate, revenue booked, average call duration (where duration is logged), average negotiation rounds, negotiation win rate
-- Revenue strip: captured vs. potential, capture rate, average discount
+- Revenue strip: captured vs. potential, capture rate, average discount, **revenue at risk** (callbacks + negotiated non-booked opportunities)
 - Charts: call volume by day, calls by hour (24h), rate intel by lane (when booked data exists)
+- Negotiation depth chart: distribution of booked loads closed at listed rate vs after 1/2/3+ rounds
 - **Call flow funnel** (sequential stages vs. total calls)
-- Tables: outcomes, top lanes, sentiment, booked equipment mix
-- Expandable **call log** with per-call details
+- Tables: outcomes, top lanes (including **avg $/mile booked**), sentiment, booked equipment mix
+- Expandable **call log** with per-call details including matched load pickup/delivery times
 
 **Other tabs**
 
@@ -353,4 +354,3 @@ Access at `http://localhost:8000/dashboard` (or your Railway URL + `/dashboard`)
 - **Live Dashboard:** [https://happy-robot-fde-production-f148.up.railway.app/dashboard](https://happy-robot-fde-production-f148.up.railway.app/dashboard)
 - **GitHub Repo:** [https://github.com/piercegf/happy-robot-fde](https://github.com/piercegf/happy-robot-fde)
 - **HappyRobot Workflow:** [https://platform.happyrobot.ai/fdealejandroperez/workflows/gchtmr5tol1e](https://platform.happyrobot.ai/fdealejandroperez/workflows/gchtmr5tol1e)
-- **Demo Video:** *(add your Loom / YouTube link here — walkthrough: workflow setup, short live demo, dashboard)*
