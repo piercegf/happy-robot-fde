@@ -63,7 +63,7 @@
 <h3>Option A — Railway (current production)</h3>
 <ol>
   <li><strong>Prerequisites:</strong> GitHub account, <a href="https://railway.app">Railway</a> account, access to <code>piercegf/happy-robot-fde</code>.</li>
-  <li><strong>Create service:</strong> Railway → New Project → Deploy from GitHub → choose <strong>piercegf/happy-robot-fde</strong>. Build uses <code>railway.json</code> (Dockerfile builder) and the repo <code>Dockerfile</code>.</li>
+  <li><strong>Create service:</strong> Railway → New Project → Deploy from GitHub → choose <strong>piercegf/happy-robot-fde</strong> (default branch <code>main</code>). Build uses <code>railway.json</code> (Dockerfile builder) and the repo <code>Dockerfile</code>.</li>
   <li><strong>Variables</strong> (Railway → service → Variables), minimum:</li>
 </ol>
 
@@ -106,7 +106,7 @@
 <p>Clone <code>https://github.com/piercegf/happy-robot-fde.git</code>, then from repo root:</p>
 <pre>cd happy-robot-fde
 cp .env.example .env
-# Set API_KEY and optionally FMCSA_WEBKEY in .env
+# .env.example already sets a local API_KEY; uncomment FMCSA_WEBKEY there if you use the primary FMCSA API
 mkdir -p data
 docker compose up --build</pre>
 <p>Dashboard: <strong>http://localhost:8000/dashboard</strong>. Compose binds <code>./data</code> for SQLite persistence.</p>
@@ -114,13 +114,13 @@ docker compose up --build</pre>
 <h3>Option C — Local Python</h3>
 <pre>git clone https://github.com/piercegf/happy-robot-fde.git
 cd happy-robot-fde
-python -m venv venv
+python3 -m venv venv   # Python 3.12+ (matches Dockerfile)
 source venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
 mkdir -p data
 uvicorn app.main:app --reload --port 8000</pre>
-<p>Windows: <code>venv\Scripts\activate</code>. Dashboard: <strong>http://localhost:8000/dashboard</strong>. API calls need <code>X-API-Key</code> matching <code>API_KEY</code> in <code>.env</code> (default in <code>.env.example</code> is <code>acme-logistics-2026</code> for local dev only).</p>
+<p>Run commands from the repo root so <code>load_dotenv()</code> finds <code>.env</code>. Windows: <code>venv\Scripts\activate</code>. Dashboard: <strong>http://localhost:8000/dashboard</strong>. API calls need <code>X-API-Key</code> matching <code>API_KEY</code> in <code>.env</code> (<code>.env.example</code> default <code>acme-logistics-2026</code> for local dev).</p>
 
 <h3>Optional — Web voice QA (local only)</h3>
 <p>Run <code>server/</code> (token API, port 3001) and <code>client/</code> (Vite) per repository README. Production demos use HappyRobot <strong>web call</strong>; this stack is for local testing only.</p>

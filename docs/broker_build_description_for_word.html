@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Inbound Carrier Sales — Build Description (Acme Logistics)</title>
+<style>
+  body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; line-height: 1.35; color: #111; max-width: 7in; margin: 1in auto; }
+  h1 { font-size: 18pt; font-weight: bold; margin: 18pt 0 12pt 0; }
+  h2 { font-size: 14pt; font-weight: bold; margin: 16pt 0 8pt 0; }
+  h3 { font-size: 12pt; font-weight: bold; margin: 12pt 0 6pt 0; }
+  p { margin: 0 0 10pt 0; }
+  ul, ol { margin: 0 0 10pt 1.2em; }
+  li { margin-bottom: 4pt; }
+  table { border-collapse: collapse; width: 100%; margin: 10pt 0 14pt 0; }
+  th, td { border: 1px solid #333; padding: 6pt 8pt; vertical-align: top; text-align: left; }
+  th { background: #f0f0f0; font-weight: bold; }
+  pre { font-family: Consolas, monospace; font-size: 9pt; background: #f5f5f5; border: 1px solid #ccc; padding: 10pt; margin: 10pt 0; white-space: pre-wrap; }
+  .sub { color: #333; margin-bottom: 12pt; }
+  .disclaimer { font-style: italic; color: #333; margin-top: 14pt; }
+</style>
+</head>
+<body>
+
+<h1>Inbound Carrier Sales — Build Description for Acme Logistics</h1>
+<p class="sub"><strong>Prepared for:</strong> Acme Logistics<br />
+<strong>Subject:</strong> AI-powered inbound carrier sales — scope delivered, carrier experience, and operational value</p>
+
+<h2>Purpose of this document</h2>
+<p>This is a <strong>business-facing description</strong> of what was built for your inbound carrier sales use case: how a carrier’s call is handled end to end, what protections are in place for your brokerage, and what visibility your team gets after the fact. It is intended for operations, commercial, and leadership readers—not as an IT runbook.</p>
+
+<h2>The problem we addressed</h2>
+<p>Inbound carrier calls are high-intent but easy to mishandle: after-hours volume, inconsistent rate discipline, and manual FMCSA checks slow down booking and create compliance risk. The build focuses on <strong>capturing more bookable freight</strong>, <strong>protecting margin with consistent negotiation rules</strong>, and <strong>giving you a clear picture of what happened on every call</strong>—without requiring carriers to learn a new app.</p>
+
+<h2>What we delivered (in plain terms)</h2>
+<table>
+  <tr>
+    <th style="width:28%">Capability</th>
+    <th>What it means for Acme</th>
+  </tr>
+  <tr>
+    <td><strong>24/7 voice coverage</strong></td>
+    <td>Carriers reach a professional voice agent anytime; you are not losing loads to voicemail or delay.</td>
+  </tr>
+  <tr>
+    <td><strong>Authority verification before quoting</strong></td>
+    <td>MC number is checked against FMCSA (with a backup source if needed) before load details are shared—reducing exposure to unauthorized or inactive carriers.</td>
+  </tr>
+  <tr>
+    <td><strong>Guided load matching</strong></td>
+    <td>The agent collects lane and equipment needs, then presents matching loads from your available inventory with the details a carrier expects (lane, rate, weight, timing, notes).</td>
+  </tr>
+  <tr>
+    <td><strong>Structured negotiation</strong></td>
+    <td>Rate discussions follow a defined playbook: up to three rounds, with a <strong>firm floor at 95% of the posted rate</strong> so you do not train the market to expect deep discounts on every call.</td>
+  </tr>
+  <tr>
+    <td><strong>Structured call outcomes</strong></td>
+    <td>Every call is classified (for example: booked, no agreement, not eligible, no loads available, callback requested, or other) and logged with the commercial details that matter for reporting.</td>
+  </tr>
+  <tr>
+    <td><strong>Operations visibility</strong></td>
+    <td>A secure web dashboard summarizes funnel performance, revenue capture versus posted rates, sentiment trends, lane demand, call timing, and negotiation effectiveness—so you can manage the channel like a product, not a black box.</td>
+  </tr>
+</table>
+
+<h2>The carrier experience (one call, start to finish)</h2>
+<ol>
+  <li><strong>Answer and qualify</strong> — The agent identifies as Acme Logistics, collects the carrier’s MC number, and verifies operating authority in real time. If the carrier is not authorized to operate, the call ends politely—before any freight discussion.</li>
+  <li><strong>Understand intent</strong> — The agent asks what lane and equipment type the carrier is looking for.</li>
+  <li><strong>Match and present</strong> — Available loads are matched to that intent. If nothing fits, the carrier is told clearly and the attempt is logged for demand insight.</li>
+  <li><strong>Quote and negotiate</strong> — When there is a fit, the agent presents the load and rate. If the carrier pushes on price, the system responds within your guardrails (three rounds, down to the 95% floor). Accepted terms are confirmed as booked; walkaways and callbacks are handled explicitly.</li>
+  <li><strong>After the call</strong> — Key facts from the conversation are extracted and stored for reporting: outcome, rates discussed, lane, equipment, and relationship signals your team can trend over time.</li>
+</ol>
+<p>This flow mirrors how a strong inbound desk works—except it scales to <strong>every hour of the week</strong> with <strong>consistent policy</strong>.</p>
+
+<h2>Why the negotiation design matters commercially</h2>
+<p>Brokers lose money in two predictable ways on inbound: <strong>giving away too much</strong> to close, or <strong>refusing to flex</strong> and losing the truck. The three-round structure is deliberate: it signals willingness to move while capping downside. The <strong>95% floor</strong> is your non-negotiable margin protection on automated quotes; it is simple to explain internally and to tune later if your lane strategy changes.</p>
+
+<h2>What you can see in operations (dashboard)</h2>
+<p>The reporting layer is built around questions a brokerage actually asks:</p>
+<ul>
+  <li><strong>Are we converting inbound interest into booked loads?</strong></li>
+  <li><strong>When we book, how close are we to the posted rate?</strong> (revenue capture and average discount)</li>
+  <li><strong>Which lanes are carriers asking for most?</strong></li>
+  <li><strong>When do carriers call—and are we staffed or covered?</strong></li>
+  <li><strong>When price is discussed, how often do we still win the load?</strong></li>
+  <li><strong>Are carriers leaving frustrated or satisfied, in aggregate?</strong></li>
+</ul>
+<p>Together, these metrics support <strong>pricing discipline</strong>, <strong>capacity planning</strong>, and <strong>carrier experience</strong>—without listening to hundreds of recordings.</p>
+
+<h2>Risk, privacy, and “production readiness”</h2>
+<ul>
+  <li><strong>Compliance-first quoting:</strong> Load economics are not discussed with carriers who fail authority checks.</li>
+  <li><strong>Hosted, encrypted access:</strong> Production traffic uses industry-standard HTTPS; administrative access to the operations view should be treated like any internal tool URL (limited distribution, strong credentials, rotation if shared broadly).</li>
+  <li><strong>Demo vs. enterprise scale:</strong> The demonstration uses a lightweight database and a focused load file suitable for evaluation. A full production rollout would typically connect to your TMS or load board, add role-based access for larger teams, and align data retention with your policies.</li>
+</ul>
+
+<h2>How this fits your stack conceptually</h2>
+<p>The <strong>voice and conversation layer</strong> runs on <strong>HappyRobot</strong> (telephony, speech, and the agent workflow). The <strong>business rules</strong>—verification, inventory search, negotiation math, logging, and the operations dashboard—run on a <strong>dedicated backend</strong> you control, so rates, outcomes, and reporting stay consistent with Acme’s rules.</p>
+<p>For technical teams reviewing the implementation, the detailed architecture, APIs, and deployment notes are documented separately in the repository’s technical build document.</p>
+
+<h2>Suggested next conversation with Acme</h2>
+<ol>
+  <li><strong>Lane and pricing policy</strong> — Confirm the 95% floor and round count match how Acme wants to quote inbound today.</li>
+  <li><strong>Inventory source</strong> — Decide whether loads stay in a managed table for pilot or sync from your live TMS.</li>
+  <li><strong>Handoff to dispatch</strong> — Define what “booked” means operationally (e.g., alert dispatch, create load hold, or CRM ticket).</li>
+  <li><strong>Success metrics</strong> — Agree on target conversion, revenue capture, and callback follow-up SLAs for a 30–60 day pilot.</li>
+</ol>
+
+<h2>Appendix — demonstration access (evaluators only)</h2>
+<p>A <strong>live operations dashboard</strong> is hosted for this evaluation. Share the link only with Acme stakeholders who should see reporting and call outcomes; treat it like any internal admin tool.</p>
+<p><strong>Dashboard:</strong> <a href="https://happy-robot-fde-production-f148.up.railway.app/dashboard">https://happy-robot-fde-production-f148.up.railway.app/dashboard</a></p>
+<p>Integration details, reproduction steps, and security configuration for IT are documented separately in the technical build package.</p>
+
+<p class="disclaimer">This description reflects the build as delivered for evaluation and demonstration. It is not a legal contract or compliance certification; FMCSA and brokerage obligations remain with the licensed broker of record.</p>
+
+</body>
+</html>

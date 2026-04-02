@@ -392,6 +392,14 @@ def get_call_metrics():
         "negotiation_success_rate": 0, "calls_by_hour": {},
         "all_calls": [],
         "call_flow_funnel": {"total": 0, "verified": 0, "eligible": 0, "loads_searched": 0, "negotiated": 0, "booked": 0},
+        "revenue_at_risk": {"total_usd": 0, "call_count": 0},
+        "negotiation_depth_booked": {
+            "listed": {"count": 0, "pct": 0},
+            "after_1": {"count": 0, "pct": 0},
+            "after_2": {"count": 0, "pct": 0},
+            "after_3plus": {"count": 0, "pct": 0},
+            "booked_total": 0,
+        },
     }
 
     if total_calls == 0:
@@ -429,14 +437,76 @@ def get_call_metrics():
     avg_discount_pct = round(cur.fetchone()[0] or 0, 1)
 
     cur.execute(f"""
-        SELECT requested_origin || ' → ' || requested_destination as lane,
-            COUNT(*) as cnt,
-            ROUND(SUM(CASE WHEN {_is_booked()} THEN 1.0 ELSE 0 END) / COUNT(*) * 100, 1) as booking_rate
-        FROM calls
-        WHERE requested_origin IS NOT NULL AND requested_destination IS NOT NULL
-        GROUP BY lane ORDER BY cnt DESC LIMIT 5
+        SELECT
+            TRIM(c.requested_origin) || ' → ' || TRIM(c.requested_destination) AS lane,
+            COUNT(*) AS cnt,
+            ROUND(SUM(CASE WHEN {_is_booked()} THEN 1.0 ELSE 0 END) / COUNT(*) * 100, 1) AS booking_rate,
+            ROUND(AVG(
+                CASE
+                    WHEN {_is_booked()}
+                        AND c.agreed_rate IS NOT NULL
+                        AND l.miles IS NOT NULL AND l.miles > 0
+                    THEN c.agreed_rate / l.miles
+                END
+            ), 3) AS avg_rpm_booked
+        FROM calls c
+        LEFT JOIN loads l ON c.load_id_matched = l.load_id
+        WHERE c.requested_origin IS NOT NULL AND TRIM(c.requested_origin) != ''
+            AND c.requested_destination IS NOT NULL AND TRIM(c.requested_destination) != ''
+        GROUP BY lane
+        ORDER BY cnt DESC
+        LIMIT 5
     """)
-    top_lanes = [{"lane": r["lane"], "count": r["cnt"], "booking_rate": r["booking_rate"]} for r in cur.fetchall()]
+    top_lanes = [
+        {
+            "lane": r["lane"],
+            "count": r["cnt"],
+            "booking_rate": r["booking_rate"],
+            "avg_rpm_booked": r["avg_rpm_booked"],
+        }
+        for r in cur.fetchall()
+    ]
+
+    # Recoverable pipeline $: callbacks + negotiated-but-not-booked (posted rate as proxy)
+    cur.execute("""
+        SELECT COALESCE(SUM(loadboard_rate), 0) AS total_usd, COUNT(*) AS call_count
+        FROM calls
+        WHERE loadboard_rate IS NOT NULL
+        AND (
+            outcome IN ('callback_requested', 'callback')
+            OR (outcome IN ('no_agreement', 'rejected') AND COALESCE(negotiation_rounds, 0) > 0)
+        )
+    """)
+    row_rar = cur.fetchone()
+    revenue_at_risk = {
+        "total_usd": round(row_rar["total_usd"] or 0, 2),
+        "call_count": int(row_rar["call_count"] or 0),
+    }
+
+    # Booked loads only: how many negotiation rounds before close (rate competitiveness signal)
+    cur.execute(f"""
+        SELECT
+            SUM(CASE WHEN COALESCE(negotiation_rounds, 0) = 0 THEN 1 ELSE 0 END) AS n0,
+            SUM(CASE WHEN negotiation_rounds = 1 THEN 1 ELSE 0 END) AS n1,
+            SUM(CASE WHEN negotiation_rounds = 2 THEN 1 ELSE 0 END) AS n2,
+            SUM(CASE WHEN COALESCE(negotiation_rounds, 0) >= 3 THEN 1 ELSE 0 END) AS n3p
+        FROM calls
+        WHERE {_is_booked()}
+    """)
+    nd = cur.fetchone()
+    n0, n1, n2, n3p = (nd["n0"] or 0), (nd["n1"] or 0), (nd["n2"] or 0), (nd["n3p"] or 0)
+    booked_total = n0 + n1 + n2 + n3p
+
+    def _pct(n):
+        return round((n / booked_total) * 100, 1) if booked_total else 0.0
+
+    negotiation_depth_booked = {
+        "listed": {"count": int(n0), "pct": _pct(n0)},
+        "after_1": {"count": int(n1), "pct": _pct(n1)},
+        "after_2": {"count": int(n2), "pct": _pct(n2)},
+        "after_3plus": {"count": int(n3p), "pct": _pct(n3p)},
+        "booked_total": booked_total,
+    }
 
     cur.execute(
         "SELECT AVG(call_duration_seconds) FROM calls "
@@ -540,4 +610,6 @@ def get_call_metrics():
         "calls_by_hour": calls_by_hour,
         "all_calls": all_calls,
         "call_flow_funnel": call_flow_funnel,
+        "revenue_at_risk": revenue_at_risk,
+        "negotiation_depth_booked": negotiation_depth_booked,
     }

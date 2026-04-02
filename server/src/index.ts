@@ -28,6 +28,12 @@ if (!WORKFLOW_ID) {
 
 const client = new HappyRobotClient({ apiKey: API_KEY });
 
+/** Comma-separated origins for deployed voice client (e.g. Vercel). Localhost always allowed. */
+const extraOrigins = (process.env.VOICE_CLIENT_ORIGINS || "")
+  .split(",")
+  .map((s) => s.trim().replace(/\/$/, ""))
+  .filter(Boolean);
+
 const app = express();
 // Allow any localhost / 127.0.0.1 port (Vite often uses 5174+ when 5173 is busy)
 app.use(
@@ -35,6 +41,8 @@ app.use(
     origin: (origin, callback) => {
       if (!origin) return callback(null, true);
       try {
+        const normalized = origin.replace(/\/$/, "");
+        if (extraOrigins.includes(normalized)) return callback(null, true);
         const u = new URL(origin);
         const ok =
           (u.hostname === "localhost" || u.hostname === "127.0.0.1") &&

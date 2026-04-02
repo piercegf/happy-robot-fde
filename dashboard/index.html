@@ -154,11 +154,13 @@ table.data-table{width:100%;border-collapse:collapse}
 .carrier-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;color:#fff;flex-shrink:0}
 
 .revenue-section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px 24px;margin-bottom:20px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
-.revenue-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:32px;align-items:center}
+.revenue-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1.25fr;gap:24px 28px;align-items:center}
+@media(max-width:900px){.revenue-grid{grid-template-columns:1fr 1fr;gap:20px}}
 @media(max-width:700px){.revenue-grid{grid-template-columns:1fr;gap:16px}}
 .rev-label{font-size:.72rem;font-weight:600;color:var(--t2);margin-bottom:6px;text-transform:uppercase;letter-spacing:.04em}
 .rev-value{font-family:'JetBrains Mono',monospace;font-size:1.5rem;font-weight:600;line-height:1.2}
 .rev-value.green{color:#16A34A}
+.rev-value.amber{color:#D97706}
 .rev-bar-track{height:6px;background:var(--border);border-radius:3px;margin-top:10px;overflow:hidden}
 .rev-bar-fill{height:100%;border-radius:3px;transition:width .8s ease;background:var(--green)}
 .rev-sub{font-size:.72rem;color:var(--t3);margin-top:6px}
@@ -380,6 +382,11 @@ table.data-table{width:100%;border-collapse:collapse}
             <div class="rev-label">Avg Discount</div>
             <div class="rev-value" id="revDiscount" style="color:var(--t1)">—</div>
           </div>
+          <div style="text-align:right">
+            <div class="rev-label">Revenue at risk</div>
+            <div class="rev-value amber" id="revAtRisk">—</div>
+            <div class="rev-sub" id="revAtRiskSub">callbacks + lost after negotiation</div>
+          </div>
         </div>
       </div>
 
@@ -405,7 +412,7 @@ table.data-table{width:100%;border-collapse:collapse}
             </h3>
           </div>
           <table class="data-table">
-            <thead><tr><th style="width:32px"></th><th>Lane</th><th class="num" style="width:56px">Calls</th><th class="num" style="width:56px">Booked</th><th style="width:80px;text-align:right">Book %</th></tr></thead>
+            <thead><tr><th style="width:32px"></th><th>Lane</th><th class="num" style="width:56px">Calls</th><th class="num" style="width:56px">Booked</th><th style="width:72px;text-align:right">Book %</th><th class="num-right" style="width:88px">$/mi booked</th></tr></thead>
             <tbody id="lanesBody"></tbody>
           </table>
         </div>
@@ -439,15 +446,27 @@ table.data-table{width:100%;border-collapse:collapse}
         </div>
       </div>
 
-      <!-- Rate Intelligence -->
-      <div class="table-card" style="margin-bottom:20px">
-        <div class="table-card-header">
-          <h3>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-            Rate Intelligence — Posted vs Agreed by Lane
-          </h3>
+      <!-- Rate Intelligence + Negotiation depth -->
+      <div class="tables-row" style="margin-bottom:20px">
+        <div class="table-card" style="margin-bottom:0">
+          <div class="table-card-header">
+            <h3>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              Rate Intelligence — Posted vs Agreed by Lane
+            </h3>
+          </div>
+          <div style="padding:16px 20px;height:220px"><canvas id="chartRateIntel"></canvas></div>
         </div>
-        <div style="padding:16px 20px;height:220px"><canvas id="chartRateIntel"></canvas></div>
+        <div class="table-card" style="margin-bottom:0">
+          <div class="table-card-header">
+            <h3>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+              Negotiation depth — booked loads
+            </h3>
+          </div>
+          <p style="padding:0 20px;margin:0 0 8px;font-size:.75rem;color:var(--t3)">Share of <strong>load_booked</strong> by counter-offer rounds before close. High “at listed” → rates feel competitive.</p>
+          <div style="padding:8px 16px 16px;height:200px;max-width:360px;margin:0 auto"><canvas id="chartNegDepth"></canvas></div>
+        </div>
       </div>
 
       <!-- Call Analysis Log -->
@@ -610,6 +629,7 @@ function peakHourLabel(cbh) {
   return 'Peak ' + fmtHour(bestH) + ' · ' + bestN + ' calls';
 }
 function fmtCur(n) { if (n==null) return '$0'; return '$'+Math.round(n).toLocaleString('en-US'); }
+function fmtRpm(n) { if (n==null || n==='' || Number.isNaN(Number(n))) return '—'; return '$'+Number(n).toFixed(2)+'/mi'; }
 function fmtPct(v) { return (v||0).toFixed(1)+'%'; }
 function fmtHour(h) { h=parseInt(h); if(h===0)return'12am'; if(h<12)return h+'am'; if(h===12)return'12pm'; return(h-12)+'pm'; }
 function pctClass(p) { if(p>=60)return'green'; if(p>=30)return'amber'; if(p>0)return'red'; return'gray'; }
@@ -759,13 +779,14 @@ function buildLanesTable(data) {
   const lanes = data.top_lanes || [];
   const tbody = document.getElementById('lanesBody');
   document.getElementById('lanesCount').textContent = `(${lanes.length})`;
-  if(!lanes.length){tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--t3);padding:24px">No lane data yet</td></tr>';return;}
+  if(!lanes.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--t3);padding:24px">No lane data yet</td></tr>';return;}
   tbody.innerHTML = lanes.map((l,i)=>{
     const bc = Math.round(l.count*l.booking_rate/100);
     const cls = pctClass(l.booking_rate);
     const color = AVATAR_COLORS[i%AVATAR_COLORS.length];
     const ini = l.lane.split('→').map(s=>s.trim().charAt(0)).join('');
-    return `<tr><td><div class="carrier-avatar" style="background:${color};width:28px;height:28px;font-size:.6rem">${ini}</div></td><td style="font-weight:500">${l.lane}</td><td class="num" style="font-weight:600">${l.count}</td><td class="num" style="color:var(--green);font-weight:600">${bc}</td><td style="text-align:right"><span class="pct-badge ${cls}">${l.booking_rate.toFixed(1)}%</span></td></tr>`;
+    const rpm = fmtRpm(l.avg_rpm_booked);
+    return `<tr><td><div class="carrier-avatar" style="background:${color};width:28px;height:28px;font-size:.6rem">${ini}</div></td><td style="font-weight:500">${l.lane}</td><td class="num" style="font-weight:600">${l.count}</td><td class="num" style="color:var(--green);font-weight:600">${bc}</td><td style="text-align:right"><span class="pct-badge ${cls}">${l.booking_rate.toFixed(1)}%</span></td><td class="num-right" style="font-family:'JetBrains Mono',monospace;font-size:.78rem">${rpm}</td></tr>`;
   }).join('');
 }
 
@@ -788,6 +809,36 @@ function buildEquipmentTable(data) {
     const meta = EQUIP_META[type]||{dot:'gray',color:'#9CA3AF'}; const pct = count/total*100;
     return `<tr><td><span class="status-dot ${meta.dot}"></span></td><td style="font-weight:500">${type}</td><td class="num" style="font-weight:600">${count}</td><td class="num">${pct.toFixed(0)}%</td><td>${miniBar(pct,meta.color)}</td></tr>`;
   }).join('');
+}
+
+function buildNegotiationDepthChart(data) {
+  const nd = data.negotiation_depth_booked || {};
+  const total = nd.booked_total || 0;
+  const labels = ['At listed (0 rounds)', 'After 1 round', 'After 2 rounds', 'After 3+ rounds'];
+  const counts = [
+    (nd.listed && nd.listed.count) || 0,
+    (nd.after_1 && nd.after_1.count) || 0,
+    (nd.after_2 && nd.after_2.count) || 0,
+    (nd.after_3plus && nd.after_3plus.count) || 0,
+  ];
+  if (total === 0) return;
+  const colors = ['rgba(34,197,94,0.75)', 'rgba(59,130,246,0.75)', 'rgba(245,158,11,0.75)', 'rgba(139,92,246,0.75)'];
+  charts.negDepth = new Chart(document.getElementById('chartNegDepth'), {
+    type: 'doughnut',
+    data: {
+      labels: labels.map((lab, i) => `${lab} (${counts[i]}, ${((counts[i]/total)*100).toFixed(0)}%)`),
+      datasets: [{ data: counts, backgroundColor: colors, borderWidth: 0, hoverOffset: 6 }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '58%',
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 10, padding: 10, font: { size: 10 } } },
+        tooltip: { callbacks: { label: (c) => ` ${c.parsed} calls (${((c.parsed/total)*100).toFixed(1)}%)` } },
+      },
+    },
+  });
 }
 
 function buildRateIntelChart(data) {
@@ -1065,10 +1116,17 @@ async function fetchData() {
     const pct = data.total_potential_revenue>0 ? (data.total_revenue_booked/data.total_potential_revenue)*100 : 0;
     document.getElementById('revBar').style.width = pct+'%';
 
+    const rar = data.revenue_at_risk || {};
+    document.getElementById('revAtRisk').textContent = fmtCur(rar.total_usd);
+    const rc = rar.call_count != null ? rar.call_count : 0;
+    document.getElementById('revAtRiskSub').textContent =
+      rc ? `sum of posted rate on ${rc} call${rc === 1 ? '' : 's'} (callbacks + rejected after negotiation)` : 'no qualifying calls yet';
+
     buildVolumeChart(data);
     buildHoursChart(data);
     buildFunnel(data);
     buildRateIntelChart(data);
+    buildNegotiationDepthChart(data);
     buildOutcomesTable(data);
     buildLanesTable(data);
     buildSentimentTable(data);

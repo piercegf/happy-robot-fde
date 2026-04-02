@@ -187,7 +187,7 @@ There is **no Terraform**; use Railway, Docker Compose, or local Python.
 #### Option A — Railway (current production pattern)
 
 1. **Prerequisites:** GitHub account, [Railway](https://railway.app) account, access to **`piercegf/happy-robot-fde`**.
-2. **Create service:** New Project → Deploy from GitHub → select **`piercegf/happy-robot-fde`**. Railway uses `railway.json` and the **Dockerfile**.
+2. **Create service:** New Project → Deploy from GitHub → select **`piercegf/happy-robot-fde`** (branch **`main`**). Railway uses `railway.json` and the **Dockerfile**.
 3. **Environment variables** (Railway → service → Variables):
 
    | Variable | Required | Purpose |
@@ -207,7 +207,7 @@ There is **no Terraform**; use Railway, Docker Compose, or local Python.
 ```bash
 git clone https://github.com/piercegf/happy-robot-fde.git
 cd happy-robot-fde
-cp .env.example .env   # set API_KEY and optionally FMCSA_WEBKEY
+cp .env.example .env   # local API_KEY already set; uncomment FMCSA_WEBKEY in .env if needed
 mkdir -p data
 docker compose up --build
 ```
@@ -219,7 +219,7 @@ docker compose up --build
 ```bash
 git clone https://github.com/piercegf/happy-robot-fde.git
 cd happy-robot-fde
-python -m venv venv && source venv/bin/activate  # Windows: venv\Scripts\activate
+python3 -m venv venv && source venv/bin/activate  # Python 3.12+ (matches Dockerfile); Windows: venv\Scripts\activate
 pip install -r requirements.txt
 cp .env.example .env && mkdir -p data
 uvicorn app.main:app --reload --port 8000
